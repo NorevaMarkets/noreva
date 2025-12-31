@@ -1,0 +1,70 @@
+# Trading
+
+Learn how to trade tokenized stocks on Noreva.
+
+## Understanding Spreads
+
+The **spread** is the difference between the tokenized stock price and the underlying stock price:
+
+- **Positive spread (Premium)** - Token trades above stock price
+- **Negative spread (Discount)** - Token trades below stock price
+
+```
+Spread = ((Token Price - Stock Price) / Stock Price) × 100%
+```
+
+### Example
+
+If bAAPL trades at $182.50 and AAPL stock is at $180.00:
+
+```
+Spread = ((182.50 - 180.00) / 180.00) × 100% = +1.39% premium
+```
+
+## Trading via Jupiter
+
+Noreva uses [Jupiter](https://jup.ag) - Solana's leading DEX aggregator - for all swaps. This ensures:
+
+- **Best prices** across all Solana DEXs
+- **Low slippage** through smart routing
+- **Fast execution** on Solana's high-speed network
+
+## Slippage Settings
+
+Default slippage is set to **0.5%**. For volatile markets or large trades, you may need to increase this.
+
+> ⚠️ **Warning:** Higher slippage increases the chance of your trade executing but may result in a worse price.
+
+## Buy vs Sell
+
+### Buying Tokenized Stocks
+
+1. Select a stock from the list
+2. Click **Buy** tab
+3. Choose payment: **USDC** or **SOL**
+4. Enter amount in USD
+5. Review the quote showing tokens you'll receive
+6. Click **Swap** and confirm in wallet
+
+### Selling Tokenized Stocks
+
+1. Select a stock you own
+2. Click **Sell** tab
+3. Choose what to receive: **USDC** or **SOL**
+4. Enter token amount to sell
+5. Review the quote showing USD you'll receive
+6. Click **Swap** and confirm in wallet
+
+## Trading Tips
+
+1. **Check the spread** - Look for tokens trading at a discount for potential value
+2. **Consider timing** - Spreads often widen after market close
+3. **Start small** - Test with small amounts before large trades
+4. **Monitor gas** - Solana fees are low but check during network congestion
+
+## Transaction History
+
+All your transactions are recorded on the Solana blockchain. You can view them:
+
+- In your wallet (Phantom/Solflare)
+- On [Solscan](https://solscan.io) or [Solana Explorer](https://explorer.solana.com)

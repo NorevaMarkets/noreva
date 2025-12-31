@@ -1,0 +1,111 @@
+# Frequently Asked Questions
+
+Common questions about Noreva and tokenized stocks.
+
+## General
+
+### What is Noreva?
+
+Noreva is a web application for tracking and trading tokenized stocks on the Solana blockchain. It aggregates data from multiple providers and enables trading via Jupiter DEX.
+
+### What are tokenized stocks?
+
+Tokenized stocks are blockchain tokens that represent ownership or exposure to traditional stocks. They're backed 1:1 by the underlying asset and can be traded 24/7 on decentralized exchanges.
+
+### Who issues the tokens?
+
+Noreva aggregates tokens from regulated providers:
+
+- **Backed Finance** - Swiss-regulated, issues bAAPL, bMSFT, etc.
+- **Swarm Markets** - German BaFin-regulated, issues SPYx, QQQx, etc.
+
+> ℹ️ **Note:** Noreva does not issue tokens. We provide a trading interface for existing tokenized securities.
+
+## Trading
+
+### Can I trade 24/7?
+
+Yes! Unlike traditional markets, tokenized stocks on Solana can be traded anytime. However, spreads may widen when traditional markets are closed due to reduced liquidity.
+
+### What fees are there?
+
+- **Solana network fee**: ~0.000005 SOL per transaction
+- **Jupiter swap fee**: Varies by route (typically 0-0.3%)
+- **Noreva fee**: None – we don't charge any fees
+
+### What is slippage?
+
+Slippage is the difference between the expected price and the executed price. It occurs due to price movement between quote and execution. Default is 0.5%.
+
+### Why did my swap fail?
+
+Common reasons:
+
+1. **Insufficient balance** - Not enough SOL for gas or tokens for swap
+2. **Slippage too low** - Price moved more than your slippage tolerance
+3. **Network congestion** - Try again or increase priority fee
+
+## Portfolio
+
+### How do I see my holdings?
+
+Connect your wallet and click "Portfolio" in the navigation. Your tokenized stock holdings will be automatically detected.
+
+### Why don't I see my tokens?
+
+Ensure:
+
+1. You're connected with the correct wallet
+2. The tokens are in your main wallet (not a token account)
+3. The token has liquidity on Jupiter
+
+### Can I import from other wallets?
+
+Currently, Noreva shows holdings only for your connected wallet. Multi-wallet support is planned.
+
+## Security
+
+### Is Noreva safe?
+
+Noreva is a non-custodial application:
+
+- We **never** have access to your private keys
+- We **never** store your funds
+- All swaps happen directly on-chain via Jupiter
+
+### Do I need to approve tokens?
+
+No. Unlike EVM chains, Solana doesn't require token approvals. You maintain full custody at all times.
+
+### What wallets are supported?
+
+- Phantom (recommended)
+- Solflare
+- Other Solana wallets via Wallet Adapter
+
+## Technical
+
+### What blockchain is this on?
+
+Solana Mainnet. Noreva uses Helius RPC for reliable blockchain access.
+
+### Is there an API?
+
+Noreva does not offer a public API. Use the web interface for trading.
+
+## Support
+
+### Where can I get help?
+
+- Check this documentation
+- Follow us on [X (Twitter)](https://x.com)
+- Open an issue on [GitHub](https://github.com/NorevaMarkets/noreva)
+
+### How do I report a bug?
+
+Please open an issue on our [GitHub repository](https://github.com/NorevaMarkets/noreva/issues) with:
+
+1. Steps to reproduce
+2. Expected behavior
+3. Actual behavior
+4. Browser and wallet info

@@ -1,0 +1,621 @@
+/* 
+ * Noreva Docs - Custom Theme
+ * Matches the main Noreva website design exactly
+ */
+
+@import 'nextra-theme-docs/style.css';
+
+:root {
+  /* Noreva Color Palette - Exact values from main site */
+  --noreva-bg: #121416;
+  --noreva-bg-secondary: #161a1d;
+  --noreva-bg-tertiary: #1c2023;
+  --noreva-bg-elevated: #22272b;
+  --noreva-bg-card: #181c1f;
+  --noreva-bg-panel: #1a1e21;
+  
+  --noreva-fg: #f0f0f0;
+  --noreva-fg-muted: #9ca3af;
+  --noreva-fg-subtle: #6b7280;
+  --noreva-fg-dim: #4b5563;
+  
+  --noreva-accent: #c4a84b;
+  --noreva-accent-light: #d4bb5e;
+  --noreva-accent-dark: #a89038;
+  --noreva-accent-muted: rgba(196, 168, 75, 0.15);
+  
+  --noreva-border: #2a2f33;
+  --noreva-border-hover: #3a3f44;
+  --noreva-border-subtle: #232830;
+  
+  --noreva-positive: #4ade80;
+  --noreva-negative: #f87171;
+}
+
+/* Force dark mode */
+html {
+  color-scheme: dark !important;
+  background: var(--noreva-bg) !important;
+}
+
+body {
+  background: var(--noreva-bg) !important;
+  color: var(--noreva-fg) !important;
+  font-family: var(--font-space-grotesk), 'Space Grotesk', system-ui, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Override ALL Nextra colors for dark theme */
+.dark,
+html.dark {
+  --nextra-primary-hue: 42deg;
+  --nextra-primary-saturation: 70%;
+  
+  /* Background colors */
+  --nx-colors-bg-primary: var(--noreva-bg) !important;
+  --nx-bg-primary: var(--noreva-bg) !important;
+  background: var(--noreva-bg) !important;
+}
+
+/* Main container */
+.nextra-nav-container,
+.nextra-sidebar-container,
+nav,
+main,
+article,
+aside,
+footer,
+header,
+div[class*="nextra"] {
+  background-color: var(--noreva-bg) !important;
+}
+
+/* Navbar styling */
+nav.nextra-nav-container {
+  background: var(--noreva-bg) !important;
+  border-bottom: 1px solid var(--noreva-border) !important;
+}
+
+.nextra-nav-container-blur {
+  background: rgba(18, 20, 22, 0.95) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+/* Banner */
+.nextra-banner {
+  background: var(--noreva-bg-secondary) !important;
+  border-bottom: 1px solid var(--noreva-border) !important;
+}
+
+/* Sidebar */
+.nextra-sidebar-container {
+  background: var(--noreva-bg) !important;
+  border-right: 1px solid var(--noreva-border) !important;
+}
+
+.nextra-sidebar-container ul {
+  background: var(--noreva-bg) !important;
+}
+
+/* Sidebar links - Remove white backgrounds */
+.nextra-sidebar-container li {
+  background: transparent !important;
+}
+
+.nextra-sidebar-container a {
+  color: var(--noreva-fg-muted) !important;
+  background: transparent !important;
+  border-radius: 6px !important;
+}
+
+.nextra-sidebar-container a:hover {
+  color: var(--noreva-fg) !important;
+  background: var(--noreva-bg-tertiary) !important;
+}
+
+/* Active sidebar item */
+.nextra-sidebar-container a.active,
+.nextra-sidebar-container li.active a,
+.nextra-sidebar-container a[aria-current="page"] {
+  color: var(--noreva-accent) !important;
+  background: var(--noreva-accent-muted) !important;
+}
+
+/* Main content background */
+main.nextra-content,
+article.nextra-content,
+.nextra-content {
+  background: var(--noreva-bg) !important;
+}
+
+/* TOC (Table of Contents) */
+nav.nextra-toc {
+  background: var(--noreva-bg) !important;
+  border-left: 1px solid var(--noreva-border) !important;
+}
+
+.nextra-toc li {
+  background: transparent !important;
+}
+
+.nextra-toc a {
+  color: var(--noreva-fg-subtle) !important;
+}
+
+.nextra-toc a:hover,
+.nextra-toc a.active {
+  color: var(--noreva-accent) !important;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-space-grotesk), 'Space Grotesk', system-ui, sans-serif !important;
+  color: var(--noreva-fg) !important;
+  font-weight: 600 !important;
+}
+
+h1 {
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+}
+
+h2 {
+  border-bottom: 1px solid var(--noreva-border) !important;
+  padding-bottom: 0.5rem !important;
+  margin-top: 2rem !important;
+}
+
+/* Paragraphs and text */
+p {
+  color: var(--noreva-fg-muted) !important;
+}
+
+li {
+  color: var(--noreva-fg-muted) !important;
+}
+
+/* Links */
+a {
+  color: var(--noreva-accent) !important;
+  text-decoration: none !important;
+}
+
+a:hover {
+  color: var(--noreva-accent-light) !important;
+}
+
+/* Inline code */
+code {
+  font-family: var(--font-jetbrains-mono), 'JetBrains Mono', monospace !important;
+  background: var(--noreva-bg-secondary) !important;
+  border: 1px solid var(--noreva-border) !important;
+  border-radius: 4px !important;
+  padding: 0.15em 0.4em !important;
+  color: var(--noreva-accent) !important;
+  font-size: 0.875em !important;
+}
+
+/* Code blocks */
+pre {
+  background: var(--noreva-bg-secondary) !important;
+  border: 1px solid var(--noreva-border) !important;
+  border-radius: 8px !important;
+}
+
+pre code {
+  border: none !important;
+  padding: 0 !important;
+  background: transparent !important;
+  color: var(--noreva-fg) !important;
+}
+
+/* Tables */
+table {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  border: 1px solid var(--noreva-border) !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  background: var(--noreva-bg-secondary) !important;
+  margin: 1.5rem 0 !important;
+  display: table !important;
+  table-layout: auto !important;
+}
+
+th {
+  background: var(--noreva-bg-tertiary) !important;
+  color: var(--noreva-fg-muted) !important;
+  font-weight: 600 !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+  text-transform: uppercase !important;
+  font-size: 0.7rem !important;
+  letter-spacing: 0.08em !important;
+  border-bottom: 1px solid var(--noreva-border) !important;
+  padding: 12px 16px !important;
+}
+
+td {
+  background: var(--noreva-bg-secondary) !important;
+  border-bottom: 1px solid var(--noreva-border) !important;
+  color: var(--noreva-fg) !important;
+  padding: 12px 16px !important;
+  text-align: left !important;
+}
+
+tr:last-child td {
+  border-bottom: none !important;
+}
+
+tr:hover td {
+  background: var(--noreva-bg-tertiary) !important;
+}
+
+/* Make sure table doesn't overflow container */
+.nextra-content table,
+article table,
+main table {
+  max-width: 100% !important;
+  overflow-x: auto !important;
+}
+
+/* Table wrapper for horizontal scroll on mobile */
+.nextra-content > table,
+article > table {
+  display: block !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+/* Cards - Remove white backgrounds completely */
+.nextra-cards {
+  gap: 1rem !important;
+}
+
+.nextra-card,
+[class*="nextra-card"],
+a[class*="card"] {
+  background: var(--noreva-bg-card) !important;
+  border: 1px solid var(--noreva-border) !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+  color: var(--noreva-fg) !important;
+}
+
+.nextra-card:hover,
+[class*="nextra-card"]:hover,
+a[class*="card"]:hover {
+  border-color: var(--noreva-accent) !important;
+  background: var(--noreva-bg-tertiary) !important;
+}
+
+.nextra-card h3,
+.nextra-card span,
+.nextra-card p {
+  color: var(--noreva-fg) !important;
+}
+
+/* Callouts */
+.nextra-callout {
+  background: var(--noreva-bg-secondary) !important;
+  border: 1px solid var(--noreva-border) !important;
+  border-radius: 8px !important;
+}
+
+.nextra-callout.warning {
+  border-color: var(--noreva-accent) !important;
+  background: var(--noreva-accent-muted) !important;
+}
+
+.nextra-callout.info {
+  border-color: #3b82f6 !important;
+  background: rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Search */
+.nextra-search input,
+input[type="search"] {
+  background: var(--noreva-bg-secondary) !important;
+  border: 1px solid var(--noreva-border) !important;
+  color: var(--noreva-fg) !important;
+  border-radius: 8px !important;
+}
+
+.nextra-search input::placeholder {
+  color: var(--noreva-fg-subtle) !important;
+}
+
+.nextra-search input:focus {
+  border-color: var(--noreva-accent) !important;
+  outline: none !important;
+}
+
+/* Search results dropdown */
+.nextra-search-results,
+[class*="search-results"] {
+  background: var(--noreva-bg-secondary) !important;
+  border: 1px solid var(--noreva-border) !important;
+  border-radius: 8px !important;
+}
+
+/* Footer */
+footer {
+  background: var(--noreva-bg) !important;
+  border-top: 1px solid var(--noreva-border) !important;
+  color: var(--noreva-fg-muted) !important;
+}
+
+/* Buttons */
+button {
+  font-family: var(--font-space-grotesk), 'Space Grotesk', system-ui, sans-serif !important;
+  background: var(--noreva-bg-secondary) !important;
+  border: 1px solid var(--noreva-border) !important;
+  color: var(--noreva-fg-muted) !important;
+  border-radius: 6px !important;
+}
+
+button:hover {
+  background: var(--noreva-bg-tertiary) !important;
+  border-color: var(--noreva-border-hover) !important;
+  color: var(--noreva-fg) !important;
+}
+
+/* Theme toggle button */
+button[aria-label*="theme"],
+button[aria-label*="Theme"] {
+  background: var(--noreva-bg-secondary) !important;
+  border: 1px solid var(--noreva-border) !important;
+}
+
+/* Scroll to top */
+button[aria-label="Scroll to top"] {
+  background: var(--noreva-bg-secondary) !important;
+  border: 1px solid var(--noreva-border) !important;
+}
+
+button[aria-label="Scroll to top"]:hover {
+  background: var(--noreva-bg-tertiary) !important;
+  border-color: var(--noreva-accent) !important;
+}
+
+/* Blockquotes */
+blockquote {
+  border-left: 3px solid var(--noreva-accent) !important;
+  background: var(--noreva-bg-secondary) !important;
+  color: var(--noreva-fg-muted) !important;
+  padding: 1rem !important;
+  margin: 1rem 0 !important;
+  border-radius: 0 8px 8px 0 !important;
+}
+
+/* Strong text */
+strong {
+  color: var(--noreva-fg) !important;
+  font-weight: 600 !important;
+}
+
+/* Navigation prev/next */
+a[class*="prev"],
+a[class*="next"],
+.nextra-navigation a {
+  background: var(--noreva-bg-card) !important;
+  border: 1px solid var(--noreva-border) !important;
+  border-radius: 8px !important;
+}
+
+a[class*="prev"]:hover,
+a[class*="next"]:hover,
+.nextra-navigation a:hover {
+  border-color: var(--noreva-accent) !important;
+  background: var(--noreva-bg-tertiary) !important;
+}
+
+/* Custom scrollbar - matching main site */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--noreva-border) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--noreva-border-hover);
+  border-radius: 3px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--noreva-fg-subtle);
+}
+
+/* Selection */
+::selection {
+  background: var(--noreva-accent-muted);
+  color: var(--noreva-accent-light);
+}
+
+/* Breadcrumb */
+.nextra-breadcrumb {
+  color: var(--noreva-fg-subtle) !important;
+}
+
+/* Edit link styling */
+a[href*="github.com"] {
+  color: var(--noreva-fg-subtle) !important;
+}
+
+a[href*="github.com"]:hover {
+  color: var(--noreva-accent) !important;
+}
+
+/* Lists */
+ul, ol {
+  color: var(--noreva-fg-muted) !important;
+}
+
+li::marker {
+  color: var(--noreva-accent) !important;
+}
+
+/* HR / Separators */
+hr {
+  border-color: var(--noreva-border) !important;
+}
+
+/* Fix any remaining white backgrounds */
+div, section, article, aside, nav, header, footer, main {
+  background-color: inherit;
+}
+
+/* Specific overrides for nextra elements that might still be white */
+[class*="nx-bg-white"],
+[class*="bg-white"],
+[class*="nx-bg-gray"] {
+  background-color: var(--noreva-bg) !important;
+}
+
+[class*="dark:nx-bg-dark"],
+.dark [class*="nx-bg"] {
+  background-color: var(--noreva-bg) !important;
+}
+
+/* Permalink hash links */
+a[href^="#"] {
+  color: var(--noreva-fg-subtle) !important;
+}
+
+a[href^="#"]:hover {
+  color: var(--noreva-accent) !important;
+}
+
+/* Fix the System/Theme dropdown button */
+button[class*="nx-"],
+.nextra-sidebar-container button,
+[class*="theme-select"] button {
+  background: var(--noreva-bg-secondary) !important;
+  border: 1px solid var(--noreva-border) !important;
+  color: var(--noreva-fg-muted) !important;
+}
+
+/* Fix any dropdown menus */
+[class*="menu"],
+[class*="dropdown"],
+[role="menu"],
+[role="listbox"] {
+  background: var(--noreva-bg-secondary) !important;
+  border: 1px solid var(--noreva-border) !important;
+}
+
+/* Fix TOC scrollbar area - the white area on the right */
+.nextra-toc > div,
+nav.nextra-toc > div,
+[class*="toc"] > div {
+  background: var(--noreva-bg) !important;
+}
+
+/* Fix any SVG icons that might be white */
+svg {
+  color: inherit !important;
+}
+
+/* Fix menu item backgrounds */
+[role="menuitem"],
+[role="option"] {
+  background: transparent !important;
+}
+
+[role="menuitem"]:hover,
+[role="option"]:hover {
+  background: var(--noreva-bg-tertiary) !important;
+}
+
+/* Make sure all nx- prefixed classes use dark backgrounds */
+[class*="nx-bg-"] {
+  background-color: var(--noreva-bg) !important;
+}
+
+[class*="nx-text-gray"] {
+  color: var(--noreva-fg-muted) !important;
+}
+
+/* Fix the progress bar / scroll indicator */
+[class*="progress"],
+[class*="indicator"] {
+  background: var(--noreva-accent) !important;
+}
+
+/* Fix popover/tooltip backgrounds */
+[class*="popover"],
+[class*="tooltip"] {
+  background: var(--noreva-bg-secondary) !important;
+  border: 1px solid var(--noreva-border) !important;
+}
+
+/* Additional dark mode fixes */
+.dark *,
+html.dark * {
+  --tw-bg-opacity: 1;
+}
+
+/* === HIDE UNWANTED ELEMENTS === */
+
+/* Hide the TOC (Table of Contents) on the right side completely */
+nav.nextra-toc,
+nav[aria-label="table of contents"] {
+  display: none !important;
+}
+
+/* Hide the bottom section of sidebar (System button, toggle) */
+.nextra-sidebar-container aside > div:last-child,
+.nextra-sidebar-container > aside > div > div:last-child {
+  display: none !important;
+}
+
+/* Specifically hide System/theme button */
+button:has(span:contains("System")),
+button:has(span:contains("Light")),
+button:has(span:contains("Dark")) {
+  display: none !important;
+}
+
+/* Hide sidebar toggle button */
+button[aria-label*="sidebar" i] {
+  display: none !important;
+}
+
+/* Hide edit link */
+a[href*="/tree/main/docs/pages"] {
+  display: none !important;
+}
+
+/* Hide scroll to top button */
+button[aria-label="Scroll to top"] {
+  display: none !important;
+}
+
+/* Make sure sidebar navigation list is visible */
+.nextra-sidebar-container ul,
+.nextra-sidebar-container nav,
+.nextra-sidebar-container li,
+.nextra-sidebar-container a {
+  display: flex !important;
+  visibility: visible !important;
+}
+
+.nextra-sidebar-container ul {
+  flex-direction: column !important;
+}
+
+/* Adjust main content width without TOC */
+article.nextra-content {
+  max-width: 900px !important;
+}
