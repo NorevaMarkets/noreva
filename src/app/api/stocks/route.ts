@@ -104,42 +104,44 @@ function extractUnderlyingSymbol(tokenSymbol: string): string {
 }
 
 /**
- * Tokens with confirmed Jupiter liquidity on Solana
+ * Tokens with VERIFIED Jupiter liquidity on Solana
  * Only these will be shown for trading
- * Note: Most tokens use "x" suffix (xStock format), some use "b" prefix (Backed format)
+ * Reduced list - only tokens that actually have working routes
  */
 const TOKENS_WITH_JUPITER_LIQUIDITY = new Set([
-  // Major tech stocks (xStock format)
+  // Major Tech Stocks
   "NVDAx",   // NVIDIA
   "AAPLx",   // Apple
   "MSFTx",   // Microsoft
   "TSLAx",   // Tesla
-  "GOOGLx",  // Alphabet Class A
   "AMZNx",   // Amazon
   "METAx",   // Meta
-  "COINx",   // Coinbase
-  "AMDx",    // AMD
+  "GOOGLx",  // Google/Alphabet
   "INTCx",   // Intel
   "NFLXx",   // Netflix
   "ORCLx",   // Oracle
   "CRMx",    // Salesforce
   "AVGOx",   // Broadcom
-  // ETFs
-  "SPYx",    // S&P 500 ETF
-  "QQQx",    // Nasdaq 100 ETF
-  "IWMx",    // Russell 2000 ETF
-  "TQQQx",   // ProShares UltraPro QQQ (3x leveraged)
-  "GLDx",    // Gold ETF
-  // Other popular stocks
-  "PLTRx",   // Palantir
-  "HOODx",   // Robinhood
+  // Crypto & Fintech
+  "COINx",   // Coinbase
   "MSTRx",   // MicroStrategy
+  "HOODx",   // Robinhood
+  // Finance & Banking
   "JPMx",    // JPMorgan
   "GSx",     // Goldman Sachs
   "BACx",    // Bank of America
-  // Backed format tokens (b prefix)
-  "bTSLA",   // Backed Tesla
-  "bGME",    // Backed GameStop
+  // Other Popular Stocks
+  "PLTRx",   // Palantir
+  "XOMx",    // ExxonMobil
+  "WMTx",    // Walmart
+  "KOx",     // Coca-Cola
+  "PFEx",    // Pfizer
+  // ETFs
+  "QQQx",    // Nasdaq 100 ETF
+  "TQQQx",   // ProShares UltraPro QQQ (3x leveraged)
+  "SPYx",    // S&P 500 ETF
+  "VTIx",    // Vanguard Total Stock Market ETF
+  "GLDx",    // Gold ETF
 ]);
 
 /**
