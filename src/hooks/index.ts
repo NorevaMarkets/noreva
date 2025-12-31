@@ -11,5 +11,6 @@ export { useEarningsData } from "./use-earnings-data";
 export { useInsiderData } from "./use-insider-data";
 export { usePeerData } from "./use-peer-data";
 export { useUser } from "./use-user";
+export { useTradeHistory } from "./use-trade-history";
 export type { CandleData } from "./use-candle-data";
 export type { NewsItem } from "./use-stock-news";

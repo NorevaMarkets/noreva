@@ -5,15 +5,17 @@ import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatUsd, truncateAddress } from "@/lib/utils/format";
-import { usePortfolioHoldings } from "@/hooks";
+import { usePortfolioHoldings, useTradeHistory } from "@/hooks";
 import { useWalletBalance } from "@/hooks";
 import Link from "next/link";
+import type { TradeDisplay } from "@/types/trade";
 
 export function PortfolioContent() {
   const { publicKey, connected, disconnect, wallet } = useWallet();
   const { setVisible } = useWalletModal();
   const { holdings, totalValue, isLoading, error, refetch } = usePortfolioHoldings();
   const { sol: solBalance, usdc: usdcBalance } = useWalletBalance();
+  const { trades, isLoading: tradesLoading } = useTradeHistory({ limit: 20 });
   
   const address = publicKey?.toBase58() || null;
 
@@ -122,7 +124,7 @@ export function PortfolioContent() {
       {/* Holdings List */}
       <Card padding="none">
         <div className="px-3 sm:px-4 py-2.5 sm:py-3 border-b border-[var(--border)] flex items-center justify-between">
-          <h3 className="font-medium text-sm sm:text-base text-[var(--foreground)]">Your xStocks Holdings</h3>
+          <h3 className="font-medium text-sm sm:text-base text-[var(--foreground)]">Your Holdings</h3>
           {isLoading && (
             <span className="text-[10px] sm:text-xs text-[var(--foreground-muted)] animate-pulse">
               Loading...
@@ -146,6 +148,35 @@ export function PortfolioContent() {
           <div className="divide-y divide-[var(--border)]">
             {holdings.map((holding) => (
               <HoldingRow key={holding.mintAddress} holding={holding} />
+            ))}
+          </div>
+        )}
+      </Card>
+
+      {/* Trade History */}
+      <Card padding="none">
+        <div className="px-3 sm:px-4 py-2.5 sm:py-3 border-b border-[var(--border)] flex items-center justify-between">
+          <h3 className="font-medium text-sm sm:text-base text-[var(--foreground)] flex items-center gap-2">
+            <HistoryIcon className="w-4 h-4 text-[var(--foreground-muted)]" />
+            Trade History
+          </h3>
+          {tradesLoading && (
+            <span className="text-[10px] sm:text-xs text-[var(--foreground-muted)] animate-pulse">
+              Loading...
+            </span>
+          )}
+        </div>
+        
+        {trades.length === 0 && !tradesLoading ? (
+          <div className="p-6 sm:p-8 text-center">
+            <p className="text-sm sm:text-base text-[var(--foreground-muted)]">
+              No trades yet. Start trading to see your history here.
+            </p>
+          </div>
+        ) : (
+          <div className="divide-y divide-[var(--border)]">
+            {trades.map((trade) => (
+              <TradeRow key={trade.id} trade={trade} />
             ))}
           </div>
         )}
@@ -223,10 +254,86 @@ function StockLogo({ symbol }: { symbol: string }) {
   );
 }
 
+function TradeRow({ trade }: { trade: TradeDisplay }) {
+  const isBuy = trade.type === "buy";
+  
+  return (
+    <div className="flex items-center justify-between p-3 sm:p-4 hover:bg-[var(--background-tertiary)] transition-colors">
+      <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+        {/* Trade Type Icon */}
+        <div className={`w-9 sm:w-10 h-9 sm:h-10 rounded-full flex items-center justify-center shrink-0 ${
+          isBuy ? "bg-[var(--positive)]/20" : "bg-[var(--negative)]/20"
+        }`}>
+          {isBuy ? (
+            <ArrowDownIcon className="w-4 sm:w-5 h-4 sm:h-5 text-[var(--positive)]" />
+          ) : (
+            <ArrowUpIcon className="w-4 sm:w-5 h-4 sm:h-5 text-[var(--negative)]" />
+          )}
+        </div>
+        
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className={`font-medium text-sm sm:text-base ${
+              isBuy ? "text-[var(--positive)]" : "text-[var(--negative)]"
+            }`}>
+              {isBuy ? "Buy" : "Sell"}
+            </span>
+            <span className="font-medium text-sm sm:text-base text-[var(--foreground)]">
+              {trade.symbol}
+            </span>
+            <Badge 
+              variant={trade.status === "confirmed" ? "positive" : trade.status === "failed" ? "negative" : "muted"}
+              className="text-[9px] sm:text-[10px]"
+            >
+              {trade.status}
+            </Badge>
+          </div>
+          <p className="text-xs sm:text-sm text-[var(--foreground-muted)]">
+            {trade.tokenAmount.toFixed(4)} tokens @ {formatUsd(trade.pricePerToken)}
+          </p>
+        </div>
+      </div>
+      
+      <div className="text-right shrink-0 ml-2">
+        <p className="font-mono text-sm sm:text-base text-[var(--foreground)] tabular-nums">
+          {formatUsd(trade.usdcAmount)}
+        </p>
+        <p className="text-[10px] sm:text-xs text-[var(--foreground-muted)]">
+          {trade.date.toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function WalletIcon({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
       <path d="M2.273 5.625A4.483 4.483 0 015.25 4.5h13.5c1.141 0 2.183.425 2.977 1.125A3 3 0 0018.75 3H5.25a3 3 0 00-2.977 2.625zM2.273 8.625A4.483 4.483 0 015.25 7.5h13.5c1.141 0 2.183.425 2.977 1.125A3 3 0 0018.75 6H5.25a3 3 0 00-2.977 2.625zM5.25 9a3 3 0 00-3 3v6a3 3 0 003 3h13.5a3 3 0 003-3v-6a3 3 0 00-3-3H15a.75.75 0 00-.75.75 2.25 2.25 0 01-4.5 0A.75.75 0 009 9H5.25z" />
+    </svg>
+  );
+}
+
+function HistoryIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  );
+}
+
+function ArrowUpIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+    </svg>
+  );
+}
+
+function ArrowDownIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
     </svg>
   );
 }
