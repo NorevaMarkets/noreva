@@ -1,19 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getOrCreateUser, updateUserProfile } from "@/lib/supabase/server";
 import { toUserUpdate } from "@/types/database";
+import { verifyAuthToken } from "@/lib/auth/verify-signature";
+
+/**
+ * Authenticate request using signature verification
+ */
+function authenticateRequest(request: NextRequest): string | null {
+  const authHeader = request.headers.get("Authorization");
+  if (authHeader) {
+    const wallet = verifyAuthToken(authHeader);
+    if (wallet) return wallet;
+  }
+
+  // Fallback for development only
+  if (process.env.NODE_ENV === "development") {
+    return request.headers.get("x-wallet-address");
+  }
+
+  return null;
+}
 
 /**
  * GET /api/user
  * Get current user profile by wallet address
- * Requires x-wallet-address header
+ * Requires authenticated signature
  */
 export async function GET(request: NextRequest) {
   try {
-    const walletAddress = request.headers.get("x-wallet-address");
+    const walletAddress = authenticateRequest(request);
 
     if (!walletAddress) {
       return NextResponse.json(
-        { success: false, error: "Wallet address required" },
+        { success: false, error: "Authentication required" },
         { status: 401 }
       );
     }
@@ -37,15 +56,15 @@ export async function GET(request: NextRequest) {
 /**
  * POST /api/user
  * Create or update user profile
- * Requires x-wallet-address header
+ * Requires authenticated signature
  */
 export async function POST(request: NextRequest) {
   try {
-    const walletAddress = request.headers.get("x-wallet-address");
+    const walletAddress = authenticateRequest(request);
 
     if (!walletAddress) {
       return NextResponse.json(
-        { success: false, error: "Wallet address required" },
+        { success: false, error: "Authentication required" },
         { status: 401 }
       );
     }

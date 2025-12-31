@@ -1,19 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import type { Trade, TradeInsert } from "@/types/trade";
+import { verifyAuthToken } from "@/lib/auth/verify-signature";
+
+/**
+ * Authenticate request using signature verification
+ * Falls back to x-wallet-address header for backwards compatibility
+ */
+function authenticateRequest(request: NextRequest): string | null {
+  // Try new auth method first (signature verification)
+  const authHeader = request.headers.get("Authorization");
+  if (authHeader) {
+    const wallet = verifyAuthToken(authHeader);
+    if (wallet) return wallet;
+  }
+
+  // Fallback to legacy method (will be removed later)
+  // Only allow in development for testing
+  if (process.env.NODE_ENV === "development") {
+    return request.headers.get("x-wallet-address");
+  }
+
+  return null;
+}
 
 /**
  * GET /api/trades
  * Get trade history for a wallet
- * Requires x-wallet-address header
+ * Requires authenticated signature
  */
 export async function GET(request: NextRequest) {
   try {
-    const walletAddress = request.headers.get("x-wallet-address");
+    const walletAddress = authenticateRequest(request);
 
     if (!walletAddress) {
       return NextResponse.json(
-        { success: false, error: "Wallet address required" },
+        { success: false, error: "Authentication required" },
         { status: 401 }
       );
     }
@@ -64,15 +86,15 @@ export async function GET(request: NextRequest) {
 /**
  * POST /api/trades
  * Record a new trade
- * Requires x-wallet-address header
+ * Requires authenticated signature
  */
 export async function POST(request: NextRequest) {
   try {
-    const walletAddress = request.headers.get("x-wallet-address");
+    const walletAddress = authenticateRequest(request);
 
     if (!walletAddress) {
       return NextResponse.json(
-        { success: false, error: "Wallet address required" },
+        { success: false, error: "Authentication required" },
         { status: 401 }
       );
     }

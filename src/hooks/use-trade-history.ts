@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import type { Trade, TradeDisplay } from "@/types/trade";
 import { toTradeDisplay } from "@/types/trade";
+import { useWalletAuth } from "./use-wallet-auth";
 
 interface UseTradeHistoryOptions {
   symbol?: string;
@@ -15,6 +16,7 @@ interface UseTradeHistoryReturn {
   trades: TradeDisplay[];
   isLoading: boolean;
   error: string | null;
+  isAuthenticated: boolean;
   refetch: () => Promise<void>;
   recordTrade: (trade: {
     type: "buy" | "sell";
@@ -34,6 +36,7 @@ interface UseTradeHistoryReturn {
 export function useTradeHistory(options: UseTradeHistoryOptions = {}): UseTradeHistoryReturn {
   const { symbol, limit = 50, autoFetch = true } = options;
   const { publicKey, connected } = useWallet();
+  const { isAuthenticated, authenticate, getAuthHeaders } = useWalletAuth();
   const [trades, setTrades] = useState<TradeDisplay[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +45,7 @@ export function useTradeHistory(options: UseTradeHistoryOptions = {}): UseTradeH
 
   // Fetch trade history
   const fetchTrades = useCallback(async () => {
-    if (!walletAddress) {
+    if (!walletAddress || !isAuthenticated) {
       setTrades([]);
       return;
     }
@@ -56,9 +59,7 @@ export function useTradeHistory(options: UseTradeHistoryOptions = {}): UseTradeH
       params.set("limit", limit.toString());
 
       const response = await fetch(`/api/trades?${params}`, {
-        headers: {
-          "x-wallet-address": walletAddress,
-        },
+        headers: getAuthHeaders(),
       });
 
       const data = await response.json();
@@ -74,7 +75,7 @@ export function useTradeHistory(options: UseTradeHistoryOptions = {}): UseTradeH
     } finally {
       setIsLoading(false);
     }
-  }, [walletAddress, symbol, limit]);
+  }, [walletAddress, isAuthenticated, symbol, limit, getAuthHeaders]);
 
   // Record a new trade
   const recordTrade = useCallback(
@@ -92,12 +93,21 @@ export function useTradeHistory(options: UseTradeHistoryOptions = {}): UseTradeH
         return null;
       }
 
+      // Auto-authenticate if needed
+      if (!isAuthenticated) {
+        const success = await authenticate();
+        if (!success) {
+          setError("Authentication required");
+          return null;
+        }
+      }
+
       try {
         const response = await fetch("/api/trades", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "x-wallet-address": walletAddress,
+            ...getAuthHeaders(),
           },
           body: JSON.stringify(trade),
         });
@@ -118,14 +128,14 @@ export function useTradeHistory(options: UseTradeHistoryOptions = {}): UseTradeH
         return null;
       }
     },
-    [walletAddress]
+    [walletAddress, isAuthenticated, authenticate, getAuthHeaders]
   );
 
   // Update a trade (e.g., confirm status)
   const updateTrade = useCallback(
     async (id: string, updates: { status?: string; txSignature?: string }): Promise<boolean> => {
-      if (!walletAddress) {
-        setError("Wallet not connected");
+      if (!walletAddress || !isAuthenticated) {
+        setError("Authentication required");
         return false;
       }
 
@@ -134,7 +144,7 @@ export function useTradeHistory(options: UseTradeHistoryOptions = {}): UseTradeH
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
-            "x-wallet-address": walletAddress,
+            ...getAuthHeaders(),
           },
           body: JSON.stringify(updates),
         });
@@ -159,23 +169,24 @@ export function useTradeHistory(options: UseTradeHistoryOptions = {}): UseTradeH
         return false;
       }
     },
-    [walletAddress]
+    [walletAddress, isAuthenticated, getAuthHeaders]
   );
 
-  // Auto-fetch on mount and when wallet connects
+  // Auto-fetch on mount and when wallet connects and authenticates
   useEffect(() => {
-    if (autoFetch && connected && walletAddress) {
+    if (autoFetch && connected && walletAddress && isAuthenticated) {
       fetchTrades();
     } else if (!connected) {
       setTrades([]);
       setError(null);
     }
-  }, [autoFetch, connected, walletAddress, fetchTrades]);
+  }, [autoFetch, connected, walletAddress, isAuthenticated, fetchTrades]);
 
   return {
     trades,
     isLoading,
     error,
+    isAuthenticated,
     refetch: fetchTrades,
     recordTrade,
     updateTrade,

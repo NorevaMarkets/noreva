@@ -1,24 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import type { Trade, TradeUpdate } from "@/types/trade";
+import { verifyAuthToken } from "@/lib/auth/verify-signature";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
 /**
+ * Authenticate request using signature verification
+ */
+function authenticateRequest(request: NextRequest): string | null {
+  const authHeader = request.headers.get("Authorization");
+  if (authHeader) {
+    const wallet = verifyAuthToken(authHeader);
+    if (wallet) return wallet;
+  }
+
+  // Fallback for development only
+  if (process.env.NODE_ENV === "development") {
+    return request.headers.get("x-wallet-address");
+  }
+
+  return null;
+}
+
+/**
  * PATCH /api/trades/[id]
  * Update a trade (e.g., confirm status after transaction)
- * Requires x-wallet-address header
+ * Requires authenticated signature
  */
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
-    const walletAddress = request.headers.get("x-wallet-address");
+    const walletAddress = authenticateRequest(request);
     const { id } = await params;
 
     if (!walletAddress) {
       return NextResponse.json(
-        { success: false, error: "Wallet address required" },
+        { success: false, error: "Authentication required" },
         { status: 401 }
       );
     }

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import type { User, UserProfile } from "@/types/database";
 import { toUserProfile } from "@/types/database";
+import { useWalletAuth } from "./use-wallet-auth";
 
 interface UseUserReturn {
   user: User | null;
@@ -11,16 +12,19 @@ interface UseUserReturn {
   isLoading: boolean;
   error: string | null;
   isConnected: boolean;
+  isAuthenticated: boolean;
+  authenticate: () => Promise<boolean>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<boolean>;
   refetch: () => Promise<void>;
 }
 
 /**
  * Hook to manage current user state
- * Automatically fetches/creates user when wallet connects
+ * Automatically fetches/creates user when wallet connects and authenticates
  */
 export function useUser(): UseUserReturn {
   const { publicKey, connected } = useWallet();
+  const { isAuthenticated, isAuthenticating, authenticate, getAuthHeaders } = useWalletAuth();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +33,7 @@ export function useUser(): UseUserReturn {
 
   // Fetch user profile
   const fetchUser = useCallback(async () => {
-    if (!walletAddress) {
+    if (!walletAddress || !isAuthenticated) {
       setUser(null);
       return;
     }
@@ -39,9 +43,7 @@ export function useUser(): UseUserReturn {
 
     try {
       const response = await fetch("/api/user", {
-        headers: {
-          "x-wallet-address": walletAddress,
-        },
+        headers: getAuthHeaders(),
       });
 
       const data = await response.json();
@@ -57,7 +59,7 @@ export function useUser(): UseUserReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [walletAddress]);
+  }, [walletAddress, isAuthenticated, getAuthHeaders]);
 
   // Update user profile
   const updateProfile = useCallback(
@@ -65,6 +67,15 @@ export function useUser(): UseUserReturn {
       if (!walletAddress) {
         setError("Wallet not connected");
         return false;
+      }
+
+      // Auto-authenticate if needed
+      if (!isAuthenticated) {
+        const success = await authenticate();
+        if (!success) {
+          setError("Authentication required");
+          return false;
+        }
       }
 
       setIsLoading(true);
@@ -75,7 +86,7 @@ export function useUser(): UseUserReturn {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "x-wallet-address": walletAddress,
+            ...getAuthHeaders(),
           },
           body: JSON.stringify(updates),
         });
@@ -97,27 +108,28 @@ export function useUser(): UseUserReturn {
         setIsLoading(false);
       }
     },
-    [walletAddress]
+    [walletAddress, isAuthenticated, authenticate, getAuthHeaders]
   );
 
-  // Auto-fetch user when wallet connects
+  // Auto-fetch user when wallet connects AND authenticates
   useEffect(() => {
-    if (connected && walletAddress) {
+    if (connected && walletAddress && isAuthenticated) {
       fetchUser();
-    } else {
+    } else if (!connected) {
       setUser(null);
       setError(null);
     }
-  }, [connected, walletAddress, fetchUser]);
+  }, [connected, walletAddress, isAuthenticated, fetchUser]);
 
   return {
     user,
     profile: user ? toUserProfile(user) : null,
-    isLoading,
+    isLoading: isLoading || isAuthenticating,
     error,
     isConnected: connected,
+    isAuthenticated,
+    authenticate,
     updateProfile,
     refetch: fetchUser,
   };
 }
-

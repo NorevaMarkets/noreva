@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 export default function AccountPage() {
   const router = useRouter();
-  const { user, profile, isLoading, error, isConnected, updateProfile } = useUser();
+  const { user, profile, isLoading, error, isConnected, isAuthenticated, authenticate, updateProfile } = useUser();
   
   // Form state
   const [formData, setFormData] = useState({
@@ -83,6 +83,32 @@ export default function AccountPage() {
               className="px-6 py-3 bg-[var(--accent)] text-white rounded-lg font-medium hover:bg-[var(--accent-hover)] transition-colors"
             >
               Go to Homepage
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // Authentication required state
+  if (isConnected && !isAuthenticated && !isLoading) {
+    return (
+      <main className="min-h-screen bg-[var(--background)]">
+        <div className="max-w-2xl mx-auto px-4 py-16">
+          <div className="bg-[var(--background-secondary)] rounded-2xl p-8 text-center">
+            <ShieldIcon className="w-16 h-16 mx-auto mb-4 text-[var(--accent)]" />
+            <h1 className="text-2xl font-bold text-[var(--foreground)] mb-2">
+              Authentication Required
+            </h1>
+            <p className="text-[var(--foreground-muted)] mb-6">
+              Please sign a message with your wallet to verify your identity.
+              This is a one-time action that keeps your data secure.
+            </p>
+            <button
+              onClick={authenticate}
+              className="px-6 py-3 bg-[var(--accent)] text-white rounded-lg font-medium hover:bg-[var(--accent-hover)] transition-colors"
+            >
+              Sign to Authenticate
             </button>
           </div>
         </div>
@@ -361,6 +387,14 @@ function CheckIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  );
+}
+
+function ShieldIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
     </svg>
   );
 }
