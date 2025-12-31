@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { Logo } from "@/components/ui/logo";
 import { cn } from "@/lib/utils";
@@ -21,8 +21,69 @@ const WalletButton = dynamic(
   }
 );
 
+interface Stock {
+  symbol: string;
+  name: string;
+  underlying: string;
+  mintAddress?: string;
+}
+
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Stock[]>([]);
+  const [showResults, setShowResults] = useState(false);
+  const [allStocks, setAllStocks] = useState<Stock[]>([]);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+
+  // Fetch stocks once on mount
+  useEffect(() => {
+    fetch("/api/stocks")
+      .then((res) => res.json())
+      .then((response) => {
+        if (response.data && Array.isArray(response.data)) {
+          setAllStocks(response.data);
+        }
+      })
+      .catch(console.error);
+  }, []);
+
+  // Filter stocks based on search query (symbol, name, underlying, or mint address)
+  useEffect(() => {
+    if (searchQuery.length > 0) {
+      const query = searchQuery.toLowerCase();
+      const filtered = allStocks.filter(
+        (stock) =>
+          stock.symbol.toLowerCase().includes(query) ||
+          stock.name.toLowerCase().includes(query) ||
+          stock.underlying.toLowerCase().includes(query) ||
+          (stock.mintAddress && stock.mintAddress.toLowerCase().includes(query))
+      );
+      setSearchResults(filtered.slice(0, 5));
+      setShowResults(true);
+    } else {
+      setSearchResults([]);
+      setShowResults(false);
+    }
+  }, [searchQuery, allStocks]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowResults(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelectStock = (symbol: string) => {
+    setSearchQuery("");
+    setShowResults(false);
+    router.push(`/stock/${symbol}`);
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full">
@@ -57,6 +118,60 @@ export function Header() {
               </a>
             </nav>
 
+            {/* Search Field */}
+            <div ref={searchRef} className="relative hidden sm:block">
+              <div className="relative">
+                <svg
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--foreground-muted)]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => searchQuery && setShowResults(true)}
+                  placeholder="Search stocks..."
+                  className="w-40 lg:w-52 h-9 pl-9 pr-3 text-sm rounded-lg bg-[var(--background-secondary)] border border-[var(--border)] text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] transition-all"
+                />
+              </div>
+
+              {/* Search Results Dropdown */}
+              {showResults && searchResults.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-[var(--background-secondary)] border border-[var(--border)] rounded-lg shadow-xl overflow-hidden z-50">
+                  {searchResults.map((stock) => (
+                    <button
+                      key={stock.symbol}
+                      onClick={() => handleSelectStock(stock.symbol)}
+                      className="w-full px-3 py-2 flex items-center gap-3 hover:bg-[var(--background-tertiary)] transition-colors text-left"
+                    >
+                      <span className="font-mono text-sm font-semibold text-[var(--accent)]">
+                        {stock.underlying}
+                      </span>
+                      <span className="text-sm text-[var(--foreground-muted)] truncate">
+                        {stock.name}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* No Results */}
+              {showResults && searchQuery && searchResults.length === 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-[var(--background-secondary)] border border-[var(--border)] rounded-lg shadow-xl p-3 z-50">
+                  <p className="text-sm text-[var(--foreground-muted)]">No stocks found</p>
+                </div>
+              )}
+            </div>
+
             {/* Right side */}
             <div className="flex items-center gap-2 sm:gap-3">
               {/* Wallet Button */}
@@ -85,6 +200,53 @@ export function Header() {
         {/* Mobile menu */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-[var(--border)] bg-[var(--background)]">
+            {/* Mobile Search */}
+            <div className="px-4 pt-3">
+              <div className="relative">
+                <svg
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--foreground-muted)]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search stocks..."
+                  className="w-full h-10 pl-10 pr-4 text-sm rounded-lg bg-[var(--background-secondary)] border border-[var(--border)] text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:outline-none focus:border-[var(--accent)]"
+                />
+              </div>
+              {/* Mobile Search Results */}
+              {searchQuery && searchResults.length > 0 && (
+                <div className="mt-2 bg-[var(--background-secondary)] border border-[var(--border)] rounded-lg overflow-hidden">
+                  {searchResults.map((stock) => (
+                    <button
+                      key={stock.symbol}
+                      onClick={() => {
+                        handleSelectStock(stock.symbol);
+                        setMobileMenuOpen(false);
+                      }}
+                      className="w-full px-4 py-3 flex items-center gap-3 hover:bg-[var(--background-tertiary)] transition-colors text-left border-b border-[var(--border)] last:border-b-0"
+                    >
+                      <span className="font-mono text-sm font-semibold text-[var(--accent)]">
+                        {stock.underlying}
+                      </span>
+                      <span className="text-sm text-[var(--foreground-muted)] truncate">
+                        {stock.name}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <nav className="px-4 py-3 space-y-1">
               <MobileNavLink href="/" onClick={() => setMobileMenuOpen(false)}>
                 Stocks
