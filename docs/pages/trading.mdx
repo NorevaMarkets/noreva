@@ -15,23 +15,41 @@ Spread = ((Token Price - Stock Price) / Stock Price) × 100%
 
 ### Example
 
-If bAAPL trades at $182.50 and AAPL stock is at $180.00:
+If AAPLx trades at $182.50 and AAPL stock is at $180.00:
 
 ```
 Spread = ((182.50 - 180.00) / 180.00) × 100% = +1.39% premium
 ```
 
-## Trading via Jupiter
+## Market Data
 
-Noreva uses [Jupiter](https://jup.ag) - Solana's leading DEX aggregator - for all swaps. This ensures:
+Before trading, check the **Market** tab for important data:
 
-- **Best prices** across all Solana DEXs
-- **Low slippage** through smart routing
-- **Fast execution** on Solana's high-speed network
+### Stock Fundamentals
+- P/E Ratio, P/S Ratio, P/B Ratio
+- Dividend yield and payout ratio
+- 52-week high and low
+- Beta, ROE, current ratio
+
+### Analyst Ratings
+- Wall Street consensus (Strong Buy → Strong Sell)
+- Price targets (high, low, mean)
+
+### Earnings Calendar
+- Next earnings date with countdown
+- Historical EPS surprises
+
+### Insider Trading
+- Recent insider buy/sell transactions
+- Insider sentiment score
+
+### News Feed
+- Latest news from Finnhub and Yahoo Finance
+- Direct links to sources
 
 ## Slippage Settings
 
-Default slippage is set to **0.5%**. For volatile markets or large trades, you may need to increase this.
+Default slippage is set to **1%**. For volatile markets or large trades, you may need to increase this.
 
 > ⚠️ **Warning:** Higher slippage increases the chance of your trade executing but may result in a worse price.
 
@@ -62,9 +80,15 @@ Default slippage is set to **0.5%**. For volatile markets or large trades, you m
 3. **Start small** - Test with small amounts before large trades
 4. **Monitor gas** - Solana fees are low but check during network congestion
 
-## Transaction History
+## Trade History
 
-All your transactions are recorded on the Solana blockchain. You can view them:
+All your trades on Noreva are automatically saved to your account:
+
+- **View in Portfolio** - Go to Portfolio → Trade History section
+- **Details saved** - Type, symbol, amount, price, timestamp, transaction signature
+- **Status tracking** - See if trades are pending, confirmed, or failed
+
+You can also verify transactions on the blockchain:
 
 - In your wallet (Phantom/Solflare)
 - On [Solscan](https://solscan.io) or [Solana Explorer](https://explorer.solana.com)

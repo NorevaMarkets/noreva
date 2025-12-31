@@ -6,23 +6,52 @@ Track and manage your tokenized stock holdings.
 
 1. Connect your wallet
 2. Click **Portfolio** in the navigation
-3. See all your tokenized stock holdings
+3. See all your tokenized stock holdings and trade history
 
 Your portfolio shows:
 
+| Section | Description |
+|---------|-------------|
+| **Wallet Info** | Connected wallet address and balances |
+| **SOL/USDC Balance** | Your SOL and USDC balances |
+| **xStocks Holdings** | All your tokenized stock holdings |
+| **Trade History** | All trades made through Noreva |
+
+## Holdings Display
+
+Each holding shows:
+
 | Column | Description |
 |--------|-------------|
-| **Stock** | Token symbol and name |
+| **Logo** | Stock logo (locally cached) |
+| **Symbol** | Token symbol (e.g., TSLAx) |
 | **Balance** | Number of tokens you hold |
 | **Token Price** | Current market price |
 | **Value** | Total USD value of holding |
-| **P&L** | Profit/Loss (coming soon) |
+| **Spread** | Current premium/discount vs stock |
+
+Click on any holding to go to the stock detail page.
+
+## Trade History
+
+All trades you make through Noreva are saved to your account:
+
+| Column | Description |
+|--------|-------------|
+| **Type** | Buy (green) or Sell (red) |
+| **Symbol** | Token traded |
+| **Amount** | Tokens and price |
+| **Total** | USD value |
+| **Status** | Confirmed, Pending, or Failed |
+| **Date** | When the trade occurred |
 
 ## Portfolio Metrics
 
-### Total Value
+### Wallet Balances
 
-The sum of all your tokenized stock holdings in USD.
+- **SOL Balance** - Native SOL for gas fees
+- **USDC Balance** - Stablecoin for trading
+- **xStocks Value** - Total value of tokenized holdings
 
 ### Holdings Count
 
@@ -30,12 +59,11 @@ Number of different tokenized stocks you own.
 
 ## Supported Tokens
 
-Your portfolio automatically detects any tokenized stocks in your wallet from supported providers:
+Your portfolio automatically detects tokenized stocks from **Backed Finance**:
 
-- **Backed Finance** (bAAPL, bMSFT, bNVDA, bTSLA, etc.)
-- **Swarm Markets** (SPYx, QQQx, etc.)
-
-> ℹ️ **Note:** Tokens must have liquidity on Jupiter to display accurate prices.
+- AAPLx, TSLAx, NVDAx, MSFTx, GOOGLx, AMZNx, METAx
+- SPYx, QQQx, GLDx, COINx, HOODx, NFLXx, ORCLx
+- MSTRx, XOMx, KOx
 
 ## Managing Your Holdings
 
@@ -66,3 +94,9 @@ Noreva works with popular Solana wallets:
 - **Solflare** - Feature-rich alternative
 
 Your portfolio data is fetched directly from the blockchain - we never store your private keys or have access to your funds.
+
+## Data Storage
+
+- **Holdings** - Read directly from blockchain (real-time)
+- **Trade History** - Stored in Noreva database (linked to your wallet)
+- **No custody** - Your tokens remain in your wallet at all times

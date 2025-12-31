@@ -14,10 +14,10 @@ Tokenized stocks are blockchain tokens that represent ownership or exposure to t
 
 ### Who issues the tokens?
 
-Noreva aggregates tokens from regulated providers:
+Noreva supports tokens from **Backed Finance** - a Swiss-regulated provider:
 
-- **Backed Finance** - Swiss-regulated, issues bAAPL, bMSFT, etc.
-- **Swarm Markets** - German BaFin-regulated, issues SPYx, QQQx, etc.
+- AAPLx, TSLAx, NVDAx, MSFTx, GOOGLx, AMZNx, METAx
+- SPYx, QQQx, GLDx, and more
 
 > ℹ️ **Note:** Noreva does not issue tokens. We provide a trading interface for existing tokenized securities.
 
@@ -35,7 +35,7 @@ Yes! Unlike traditional markets, tokenized stocks on Solana can be traded anytim
 
 ### What is slippage?
 
-Slippage is the difference between the expected price and the executed price. It occurs due to price movement between quote and execution. Default is 0.5%.
+Slippage is the difference between the expected price and the executed price. It occurs due to price movement between quote and execution. Default is 1%.
 
 ### Why did my swap fail?
 
@@ -62,6 +62,28 @@ Ensure:
 ### Can I import from other wallets?
 
 Currently, Noreva shows holdings only for your connected wallet. Multi-wallet support is planned.
+
+### Where is my trade history?
+
+Your trade history is shown in the Portfolio page below your holdings. All trades made through Noreva are automatically saved.
+
+## Account
+
+### Do I need to create an account?
+
+No traditional account is needed. Your Solana wallet IS your account. When you first connect and authenticate, a profile is automatically created.
+
+### How does authentication work?
+
+Noreva uses wallet signature authentication:
+
+1. You sign a message with your wallet (free, not a transaction)
+2. The signature proves you own the wallet
+3. You're authenticated for 24 hours
+
+### Where is my data stored?
+
+Your profile and trade history are stored in a secure database with Row Level Security. Only you can access your own data.
 
 ## Security
 

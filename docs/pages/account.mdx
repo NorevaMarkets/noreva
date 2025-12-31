@@ -1,0 +1,83 @@
+# Account
+
+Manage your profile and account settings.
+
+## Authentication
+
+Noreva uses **wallet signature authentication** - no passwords required!
+
+### How It Works
+
+1. Connect your Solana wallet (Phantom, Solflare, etc.)
+2. When accessing account features, you'll be asked to sign a message
+3. Your wallet signs the message (this is NOT a transaction)
+4. Noreva verifies the signature to prove you own the wallet
+5. You're authenticated for 24 hours
+
+> 🔒 **Security Note:** Signing a message is free and doesn't transfer any funds. It simply proves you own the wallet.
+
+## Account Settings
+
+Access your account settings by:
+
+1. Connect your wallet
+2. Click your wallet address in the header
+3. Select **Account Settings**
+
+### Profile Information
+
+You can save the following information:
+
+| Field | Description |
+|-------|-------------|
+| **First Name** | Your first name |
+| **Last Name** | Your last name |
+| **Email** | Contact email (optional) |
+| **X (Twitter)** | Your X handle |
+| **Website** | Your personal website |
+| **Bio** | A short description about yourself |
+
+Your profile is linked to your wallet address and stored securely in our database.
+
+## Trade History
+
+All trades you make through Noreva are automatically saved to your account.
+
+### Viewing Trade History
+
+1. Go to **Portfolio**
+2. Scroll down to **Trade History**
+3. See all your past trades
+
+### Trade Information
+
+Each trade record includes:
+
+| Field | Description |
+|-------|-------------|
+| **Type** | Buy or Sell |
+| **Symbol** | Token symbol (e.g., TSLAx) |
+| **Amount** | Number of tokens traded |
+| **Price** | Price per token at time of trade |
+| **Total** | Total USD value |
+| **Status** | Pending, Confirmed, or Failed |
+| **Date** | When the trade was made |
+| **TX Signature** | Solana transaction signature |
+
+## Data Privacy
+
+- Your profile data is stored in a secure PostgreSQL database
+- Only you can access your own data (enforced via Row Level Security)
+- Your wallet address is your unique identifier
+- We never store your private keys
+- Trade history is linked to your wallet for your convenience
+
+## Signing Out
+
+To sign out:
+
+1. Click your wallet address in the header
+2. Click **Disconnect**
+
+This will clear your authentication token and disconnect your wallet.
+
