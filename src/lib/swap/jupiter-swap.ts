@@ -143,6 +143,16 @@ export async function getSwapTransaction(
   }
 }
 
+export type SwapStage = "signing" | "sending" | "confirming" | "confirmed" | "error";
+
+export interface ExecuteSwapOptions {
+  swapTransaction: string;
+  signTransaction: (tx: VersionedTransaction) => Promise<VersionedTransaction>;
+  connection?: Connection;
+  lastValidBlockHeight?: number;
+  onStatusChange?: (stage: SwapStage) => void;
+}
+
 /**
  * Execute a swap using the user's wallet
  */
@@ -150,8 +160,14 @@ export async function executeSwap(
   swapTransaction: string,
   signTransaction: (tx: VersionedTransaction) => Promise<VersionedTransaction>,
   connection?: Connection,
-  lastValidBlockHeight?: number
+  lastValidBlockHeight?: number,
+  onStatusChange?: (stage: SwapStage) => void
 ): Promise<SwapResult> {
+  const updateStatus = (stage: SwapStage) => {
+    console.log(`[Swap] Stage: ${stage}`);
+    onStatusChange?.(stage);
+  };
+
   try {
     const conn = connection || new Connection(SOLANA_RPC);
     
@@ -159,11 +175,15 @@ export async function executeSwap(
     const swapTransactionBuf = Buffer.from(swapTransaction, "base64");
     const transaction = VersionedTransaction.deserialize(swapTransactionBuf);
     
+    // Stage 1: Requesting signature
+    updateStatus("signing");
     console.log("[Swap] Requesting wallet signature...");
     
     // Sign the transaction with the user's wallet
     const signedTransaction = await signTransaction(transaction);
     
+    // Stage 2: Sending transaction
+    updateStatus("sending");
     console.log("[Swap] Transaction signed, sending...");
     
     // Send the transaction with optimized settings
@@ -174,6 +194,9 @@ export async function executeSwap(
     });
     
     console.log("[Swap] Transaction sent:", signature);
+    
+    // Stage 3: Waiting for confirmation
+    updateStatus("confirming");
     
     // Get blockhash for confirmation (use lastValidBlockHeight if provided)
     const { blockhash } = await conn.getLatestBlockhash("confirmed");
@@ -196,6 +219,7 @@ export async function executeSwap(
     
     if (confirmation.value.err) {
       console.error("[Swap] Transaction failed:", confirmation.value.err);
+      updateStatus("error");
       return {
         success: false,
         error: "Transaction failed: " + JSON.stringify(confirmation.value.err),
@@ -203,6 +227,8 @@ export async function executeSwap(
       };
     }
     
+    // Stage 4: Confirmed!
+    updateStatus("confirmed");
     console.log("[Swap] Transaction confirmed!");
     
     return {
@@ -211,6 +237,7 @@ export async function executeSwap(
     };
   } catch (error) {
     console.error("[Swap] Execution error:", error);
+    updateStatus("error");
     
     // Check if user rejected the transaction
     const errorMessage = error instanceof Error ? error.message : "Unknown error";

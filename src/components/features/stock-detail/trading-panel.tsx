@@ -11,6 +11,7 @@ import {
   cleanMintAddress,
   TOKENS,
   type SwapQuote,
+  type SwapStage,
 } from "@/lib/swap";
 import { useWalletBalance, USDC_DECIMALS } from "@/hooks/use-wallet-balance";
 import { useTradeHistory } from "@/hooks/use-trade-history";
@@ -20,7 +21,7 @@ interface TradingPanelProps {
 }
 
 type PaymentToken = "USDC" | "SOL";
-type SwapStatus = "idle" | "fetching" | "ready" | "signing" | "confirming" | "success" | "error";
+type SwapStatus = "idle" | "fetching" | "ready" | "signing" | "sending" | "confirming" | "success" | "error";
 
 export function TradingPanel({ stock }: TradingPanelProps) {
   const { connected, publicKey, signTransaction } = useWallet();
@@ -187,14 +188,19 @@ export function TradingPanel({ stock }: TradingPanelProps) {
         return;
       }
 
-      setStatus("confirming");
-
-      // Execute the swap with lastValidBlockHeight for better confirmation
+      // Execute the swap with status callbacks
       const result = await executeSwap(
         swapTx.swapTransaction, 
         signTransaction, 
         connection,
-        swapTx.lastValidBlockHeight
+        swapTx.lastValidBlockHeight,
+        (stage: SwapStage) => {
+          // Map swap stages to UI status
+          if (stage === "signing") setStatus("signing");
+          else if (stage === "sending") setStatus("sending");
+          else if (stage === "confirming") setStatus("confirming");
+          // "confirmed" and "error" are handled below
+        }
       );
 
       if (result.success && result.signature) {
@@ -210,15 +216,27 @@ export function TradingPanel({ stock }: TradingPanelProps) {
           ? (paymentToken === "USDC" ? parsedAmount : (outputAmount || 0))
           : (paymentToken === "USDC" ? (outputAmount || 0) : parsedAmount * stock.price.tokenPrice);
         
-        recordTrade({
-          type: mode,
-          symbol: stock.symbol,
-          stockName: stock.name,
-          tokenAmount,
-          usdcAmount,
-          pricePerToken: stock.price.tokenPrice,
-          txSignature: result.signature,
-        });
+        // Await recordTrade and log any errors
+        try {
+          const tradeRecord = await recordTrade({
+            type: mode,
+            symbol: stock.symbol,
+            stockName: stock.name,
+            tokenAmount,
+            usdcAmount,
+            pricePerToken: stock.price.tokenPrice,
+            txSignature: result.signature,
+          });
+          
+          if (tradeRecord) {
+            console.log("[Trade] Recorded successfully:", tradeRecord.id);
+          } else {
+            console.warn("[Trade] Failed to record trade (auth may be required)");
+          }
+        } catch (tradeErr) {
+          console.error("[Trade] Error recording trade:", tradeErr);
+          // Don't fail the swap if trade recording fails
+        }
         
         setAmount("");
         setQuote(null);
@@ -459,19 +477,23 @@ export function TradingPanel({ stock }: TradingPanelProps) {
       </div>
 
       {/* Loading Overlay */}
-      {(status === "signing" || status === "confirming") && (
+      {(status === "signing" || status === "sending" || status === "confirming") && (
         <div className="absolute inset-0 bg-[var(--background)]/95 backdrop-blur-sm flex flex-col items-center justify-center z-10 rounded-lg">
           <div className="relative mb-4">
             <div className="w-16 h-16 border-4 border-[var(--accent)]/20 rounded-full"></div>
             <div className="absolute inset-0 w-16 h-16 border-4 border-[var(--accent)] border-t-transparent rounded-full animate-spin"></div>
           </div>
           <p className="text-sm font-semibold text-[var(--foreground)] mb-1">
-            {status === "signing" ? "Waiting for Approval" : "Processing Swap"}
+            {status === "signing" ? "Waiting for Approval" : 
+             status === "sending" ? "Sending Transaction" :
+             "Confirming on Blockchain"}
           </p>
           <p className="text-[10px] text-[var(--foreground-muted)] text-center px-4">
             {status === "signing" 
               ? "Please approve the transaction in your wallet" 
-              : "Confirming transaction on Solana..."}
+              : status === "sending"
+              ? "Broadcasting to Solana network..."
+              : "Waiting for blockchain confirmation..."}
           </p>
         </div>
       )}
@@ -558,6 +580,7 @@ export function TradingPanel({ stock }: TradingPanelProps) {
           !quote || 
           status === "fetching" || 
           status === "signing" || 
+          status === "sending" ||
           status === "confirming" ||
           insufficientBalance
         }
@@ -570,7 +593,8 @@ export function TradingPanel({ stock }: TradingPanelProps) {
         )}
       >
         {status === "signing" ? "Approve in Wallet..." :
-         status === "confirming" ? "Confirming..." :
+         status === "sending" ? "Sending Transaction..." :
+         status === "confirming" ? "Confirming on Chain..." :
          status === "fetching" ? "Loading..." :
          `${mode === "buy" ? "Buy" : "Sell"} ${stock.underlying}`}
       </button>
