@@ -21,10 +21,11 @@ export default function AccountPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [isFormInitialized, setIsFormInitialized] = useState(false);
 
-  // Update form when profile loads
+  // Update form ONLY when profile first loads (not on every change)
   useEffect(() => {
-    if (profile) {
+    if (profile && !isFormInitialized) {
       setFormData({
         firstName: profile.firstName,
         lastName: profile.lastName,
@@ -33,8 +34,9 @@ export default function AccountPage() {
         website: profile.website,
         bio: profile.bio,
       });
+      setIsFormInitialized(true);
     }
-  }, [profile]);
+  }, [profile, isFormInitialized]);
 
   // Handle form input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
