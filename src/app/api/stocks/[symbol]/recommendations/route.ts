@@ -108,7 +108,7 @@ async function fetchCurrentPrice(symbol: string): Promise<number | null> {
 /**
  * Calculate consensus rating
  */
-function calculateConsensus(rec: FinnhubRecommendation): RecommendationData["recommendations"]["consensus"] {
+function calculateConsensus(rec: FinnhubRecommendation): "Strong Buy" | "Buy" | "Hold" | "Sell" | "Strong Sell" | "N/A" {
   const total = rec.strongBuy + rec.buy + rec.hold + rec.sell + rec.strongSell;
   if (total === 0) return "N/A";
 
