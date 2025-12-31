@@ -104,45 +104,49 @@ function extractUnderlyingSymbol(tokenSymbol: string): string {
 }
 
 /**
+ * VERIFIED Mint Addresses for xStock tokens on Solana
+ * Manually verified to have Jupiter liquidity via Phantom Wallet
+ */
+const VERIFIED_MINT_ADDRESSES: Record<string, string> = {
+  // Major Tech Stocks
+  "NVDAx": "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh",
+  "AAPLx": "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp",
+  "MSFTx": "XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX",
+  "TSLAx": "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB",
+  "AMZNx": "Xs3eBt7uRfJX8QUs4suhyU8p2M6DoUDrJyWBa8LLZsg",
+  "METAx": "Xsa62P5mvPszXL1krVUnU5ar38bBSVcWAB6fmPCo5Zu",
+  "GOOGLx": "XsCPL9dNWBMvFtTmwcCA5v3xWPSMEBCszbQdiLLq6aN",
+  "INTCx": "XshPgPdXFRWB8tP1j82rebb2Q9rPgGX37RuqzohmArM",
+  "NFLXx": "XsEH7wWfJJu2ZT3UCFeVfALnVA6CP5ur7Ee11KmzVpL",
+  "ORCLx": "XsjFwUPiLofddX5cWFHW35GCbXcSu1BCUGfxoQAQjeL",
+  "CRMx": "XsczbcQ3zfcgAEt9qHQES8pxKAVG5rujPSHQEXi4kaN",
+  "AVGOx": "XsgSaSvNSqLTtFuyWPBhK9196Xb9Bbdyjj4fH3cPJGo",
+  // Crypto & Fintech
+  "COINx": "Xs7ZdzSHLU9ftNJsii5fCeJhoRWSC32SQGzGQtePxNu",
+  "MSTRx": "XsP7xzNPvEHS1m6qfanPUGjNmdnmsLKEoNAnHjdxxyZ",
+  "HOODx": "XsvNBAYkrDRNhA7wPHQfX3ZUXZyZLdnCQDfHZ56bzpg",
+  // Finance & Banking
+  "JPMx": "XsMAqkcKsUewDrzVkait4e5u4y8REgtyS7jWgCpLV2C",
+  "GSx": "XsgaUyp4jd1fNBCxgtTKkW64xnnhQcvgaxzsbAq5ZD1",
+  "BACx": "XswsQk4duEQmCbGzfqUUWYmi7pV7xpJ9eEmLHXCaEQP",
+  // Other Popular Stocks
+  "PLTRx": "XsoBhf2ufR8fTyNSjqfU71DYGaE6Z3SUGAidpzriAA4",
+  "XOMx": "XsaHND8sHyfMfsWPj6kSdd5VwvCayZvjYgKmmcNL5qh",
+  "WMTx": "Xs151QeqTCiuKtinzfRATnUESM2xTU6V9Wy8Vy538ci",
+  "KOx": "XsaBXg8dU5cPM6ehmVctMkVqoiRG2ZjMo1cyBJ3AykQ",
+  "PFEx": "XsAtbqkAP1HJxy7hFDeq7ok6yM43DQ9mQ1Rh861X8rw",
+  // ETFs
+  "QQQx": "Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ",
+  "SPYx": "XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W",
+  "VTIx": "XsssYEQjzxBCFgvYFFNuhJFBeHNdLWYeUSP8F45cDr9",
+  "GLDx": "Xsv9hRk1z5ystj9MhnA7Lq4vjSsLwzL2nxrwmwtD3re",
+};
+
+/**
  * Tokens with VERIFIED Jupiter liquidity on Solana
  * Only these will be shown for trading
- * Reduced list - only tokens that actually have working routes
  */
-const TOKENS_WITH_JUPITER_LIQUIDITY = new Set([
-  // Major Tech Stocks
-  "NVDAx",   // NVIDIA
-  "AAPLx",   // Apple
-  "MSFTx",   // Microsoft
-  "TSLAx",   // Tesla
-  "AMZNx",   // Amazon
-  "METAx",   // Meta
-  "GOOGLx",  // Google/Alphabet
-  "INTCx",   // Intel
-  "NFLXx",   // Netflix
-  "ORCLx",   // Oracle
-  "CRMx",    // Salesforce
-  "AVGOx",   // Broadcom
-  // Crypto & Fintech
-  "COINx",   // Coinbase
-  "MSTRx",   // MicroStrategy
-  "HOODx",   // Robinhood
-  // Finance & Banking
-  "JPMx",    // JPMorgan
-  "GSx",     // Goldman Sachs
-  "BACx",    // Bank of America
-  // Other Popular Stocks
-  "PLTRx",   // Palantir
-  "XOMx",    // ExxonMobil
-  "WMTx",    // Walmart
-  "KOx",     // Coca-Cola
-  "PFEx",    // Pfizer
-  // ETFs
-  "QQQx",    // Nasdaq 100 ETF
-  "TQQQx",   // ProShares UltraPro QQQ (3x leveraged)
-  "SPYx",    // S&P 500 ETF
-  "VTIx",    // Vanguard Total Stock Market ETF
-  "GLDx",    // Gold ETF
-]);
+const TOKENS_WITH_JUPITER_LIQUIDITY = new Set(Object.keys(VERIFIED_MINT_ADDRESSES));
 
 /**
  * Filter tokens to only show tradable stock-like assets with Jupiter liquidity
@@ -353,8 +357,9 @@ function generateTokenizedStockData(
         spreadDirection = "discount";
       }
 
-      // Find Solana address
+      // Find Solana address - prefer verified mint address over API response
       const solanaDeployment = token.deployments.find(d => d.network === "Solana");
+      const mintAddress = VERIFIED_MINT_ADDRESSES[token.symbol] || solanaDeployment?.address || "N/A";
 
       // Estimate volume and market cap
       const estimatedVolume = Math.round(5000 + Math.random() * 45000);
@@ -365,7 +370,7 @@ function generateTokenizedStockData(
         symbol: token.symbol,
         name: token.name,
         underlying: underlyingSymbol,
-        mintAddress: solanaDeployment?.address || "N/A",
+        mintAddress,
         decimals: 8,
         logoUrl: token.logo,
         provider: "backed" as const,
