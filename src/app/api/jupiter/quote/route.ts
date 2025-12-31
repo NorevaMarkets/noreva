@@ -17,7 +17,8 @@ export async function GET(request: Request) {
   const inputMint = searchParams.get("inputMint");
   const outputMint = searchParams.get("outputMint");
   const amount = searchParams.get("amount");
-  const slippageBps = searchParams.get("slippageBps") || "50";
+  // Higher default slippage for better route finding (1% = 100 bps)
+  const slippageBps = searchParams.get("slippageBps") || "100";
   const userPublicKey = searchParams.get("userPublicKey");
 
   if (!inputMint || !outputMint || !amount) {
