@@ -13,6 +13,7 @@ import {
   type SwapQuote,
 } from "@/lib/swap";
 import { useWalletBalance, USDC_DECIMALS } from "@/hooks/use-wallet-balance";
+import { useTradeHistory } from "@/hooks/use-trade-history";
 
 interface TradingPanelProps {
   stock: StockWithPrice;
@@ -25,6 +26,7 @@ export function TradingPanel({ stock }: TradingPanelProps) {
   const { connected, publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
   const { sol: solBalance, usdc: usdcBalance, isLoading: isLoadingBalance, error: balanceError, refetch: refetchBalances } = useWalletBalance();
+  const { recordTrade } = useTradeHistory({ autoFetch: false });
   
   const [mode, setMode] = useState<"buy" | "sell">("buy");
   const [paymentToken, setPaymentToken] = useState<PaymentToken>("USDC");
@@ -194,6 +196,25 @@ export function TradingPanel({ stock }: TradingPanelProps) {
         skipFetchRef.current = true; // Prevent fetching during success display
         setStatus("success");
         setTxSignature(result.signature);
+        
+        // Record trade in database
+        const tokenAmount = mode === "buy" 
+          ? parseFloat(quote.outAmount) / Math.pow(10, stockDecimals)
+          : parsedAmount;
+        const usdcAmount = mode === "buy"
+          ? (paymentToken === "USDC" ? parsedAmount : (outputAmount || 0))
+          : (paymentToken === "USDC" ? (outputAmount || 0) : parsedAmount * stock.price.tokenPrice);
+        
+        recordTrade({
+          type: mode,
+          symbol: stock.symbol,
+          stockName: stock.name,
+          tokenAmount,
+          usdcAmount,
+          pricePerToken: stock.price.tokenPrice,
+          txSignature: result.signature,
+        });
+        
         setAmount("");
         setQuote(null);
         refetchBalances();
