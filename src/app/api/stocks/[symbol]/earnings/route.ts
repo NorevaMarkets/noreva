@@ -133,7 +133,7 @@ export async function GET(
     };
 
     // Process next earnings date
-    if (calendar?.earningsCalendar?.length > 0) {
+    if (calendar?.earningsCalendar && calendar.earningsCalendar.length > 0) {
       const next = calendar.earningsCalendar[0];
       result.nextEarnings = {
         date: next.date,
