@@ -1,7 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { useStockFundamentals } from "@/hooks";
 import { cn } from "@/lib/utils";
+
+// Import local logo mapping
+import logoMapping from "../../../../public/logos/mapping.json";
 
 interface FundamentalsPanelProps {
   symbol: string;
@@ -10,6 +14,11 @@ interface FundamentalsPanelProps {
 export function FundamentalsPanel({ symbol }: FundamentalsPanelProps) {
   const { data, isLoading, error } = useStockFundamentals(symbol);
   const { profile, metrics } = data;
+  const [logoError, setLogoError] = useState(false);
+  
+  // Get local logo - try with 'x' suffix (tokenized symbol format)
+  const tokenSymbol = symbol.endsWith("x") ? symbol : `${symbol}x`;
+  const localLogoUrl = (logoMapping as Record<string, string>)[tokenSymbol];
 
   if (isLoading) {
     return (
@@ -44,14 +53,14 @@ export function FundamentalsPanel({ symbol }: FundamentalsPanelProps) {
       {profile && (
         <div className="mb-4">
           <div className="flex items-start gap-3 mb-3">
-            {profile.logo && (
+            {/* Prefer local logo, fallback to API logo */}
+            {(localLogoUrl || profile.logo) && !logoError && (
               <img
-                src={profile.logo}
+                src={localLogoUrl || profile.logo}
                 alt={profile.name}
-                className="w-10 h-10 rounded-lg bg-[var(--background-tertiary)] object-contain"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
-                }}
+                className="w-10 h-10 rounded-lg bg-[var(--background-tertiary)] object-contain p-1"
+                onError={() => setLogoError(true)}
+                loading="lazy"
               />
             )}
             <div className="flex-1 min-w-0">

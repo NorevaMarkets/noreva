@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { Card, CardTitle } from "@/components/ui/card";
@@ -9,6 +10,10 @@ import { usePortfolioHoldings, useTradeHistory } from "@/hooks";
 import { useWalletBalance } from "@/hooks";
 import Link from "next/link";
 import type { TradeDisplay } from "@/types/trade";
+import { cn } from "@/lib/utils";
+
+// Import local logo mapping
+import logoMapping from "../../../public/logos/mapping.json";
 
 export function PortfolioContent() {
   const { publicKey, connected, disconnect, wallet } = useWallet();
@@ -241,14 +246,47 @@ function HoldingRow({ holding }: HoldingRowProps) {
 }
 
 function StockLogo({ symbol }: { symbol: string }) {
-  const colors = [
-    "bg-blue-500", "bg-green-500", "bg-purple-500", "bg-orange-500",
-    "bg-pink-500", "bg-cyan-500", "bg-amber-500", "bg-red-500",
-  ];
-  const colorIndex = symbol.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
+  const [imgError, setImgError] = useState(false);
   
+  // Get local logo from mapping (symbol with 'x' suffix)
+  const tokenSymbol = symbol.endsWith("x") ? symbol : `${symbol}x`;
+  const logoUrl = (logoMapping as Record<string, string>)[tokenSymbol];
+  
+  // Premium gradient backgrounds for fallback
+  const gradients = [
+    "from-blue-500 to-blue-600",
+    "from-emerald-500 to-emerald-600",
+    "from-violet-500 to-violet-600",
+    "from-amber-500 to-amber-600",
+    "from-rose-500 to-rose-600",
+    "from-cyan-500 to-cyan-600",
+    "from-orange-500 to-orange-600",
+    "from-fuchsia-500 to-fuchsia-600",
+  ];
+  const gradientIndex = symbol.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) % gradients.length;
+  
+  // Show local logo if available and not errored
+  if (logoUrl && !imgError) {
+    return (
+      <div className="w-9 sm:w-10 h-9 sm:h-10 rounded-lg flex items-center justify-center overflow-hidden bg-[var(--background-tertiary)] shrink-0">
+        <img
+          src={logoUrl}
+          alt={symbol}
+          className="w-full h-full object-contain p-1"
+          onError={() => setImgError(true)}
+          loading="lazy"
+        />
+      </div>
+    );
+  }
+  
+  // Fallback to gradient with initials
   return (
-    <div className={`w-9 sm:w-10 h-9 sm:h-10 rounded-full flex items-center justify-center text-white font-semibold text-xs sm:text-sm shrink-0 ${colors[colorIndex]}`}>
+    <div className={cn(
+      "w-9 sm:w-10 h-9 sm:h-10 rounded-lg flex items-center justify-center text-white font-bold text-xs sm:text-sm shrink-0",
+      "bg-gradient-to-br shadow-lg",
+      gradients[gradientIndex]
+    )}>
       {symbol.slice(0, 2)}
     </div>
   );
