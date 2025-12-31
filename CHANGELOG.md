@@ -5,6 +5,65 @@ All notable changes to Noreva will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2025-12-31
+
+### Added
+- **User Authentication** - Secure wallet signature-based authentication
+  - Sign a message with your wallet to prove ownership
+  - 24-hour token validity with auto-refresh
+  - No passwords required!
+- **User Profiles** - Account settings page with personal data
+  - First name, last name, email
+  - X (Twitter) handle, website, bio
+  - Linked to wallet address
+- **Trade History** - Complete trading history saved to database
+  - All swaps recorded automatically
+  - View history in Portfolio section
+  - Transaction signatures linked
+- **Stock Fundamentals** - Comprehensive company data via Finnhub
+  - P/E, P/S, P/B ratios
+  - Dividend yield and payout
+  - 52-week high/low range
+  - Beta, ROE, current ratio
+- **News Feed** - Stock-specific news from Finnhub + Yahoo Finance RSS
+  - Latest headlines with images
+  - Expandable summaries
+  - Direct links to sources
+- **Analyst Ratings** - Wall Street consensus data
+  - Strong Buy / Buy / Hold / Sell / Strong Sell breakdown
+  - Price targets (high, low, mean)
+  - Visual rating bar
+- **Earnings Calendar** - Upcoming and historical earnings
+  - Next earnings date with countdown
+  - EPS estimates and actuals
+  - Historical surprises (beat/miss)
+- **Insider Trading** - Recent insider transactions
+  - Buy/sell activity
+  - Transaction values
+  - Insider sentiment score
+- **Local Stock Logos** - Downloaded and cached locally
+  - Faster loading times
+  - No external dependencies
+  - Used across all pages
+
+### Changed
+- **Swap Status Flow** - Fixed premature success display
+  - Now shows: Signing → Sending → Confirming → Success
+  - Proper feedback at each stage
+- **API Security** - All user-related APIs now require signature verification
+  - Prevents spoofing attacks
+  - Server-side verification with nacl/tweetnacl
+- **Portfolio Page** - Now shows stock logos from local cache
+- **Fundamentals Page** - Uses local logos instead of API
+
+### Technical
+- **Supabase Integration** - PostgreSQL database with RLS
+  - `users` table for profiles
+  - `trades` table for history
+  - Row Level Security policies
+- **New Hooks** - `useWalletAuth`, `useUser`, `useTradeHistory`, `useAnalystData`, `useEarningsData`, `useInsiderData`, `usePeerData`
+- **New API Routes** - `/api/user`, `/api/trades`, `/api/stocks/[symbol]/recommendations`, `/api/stocks/[symbol]/earnings`, `/api/stocks/[symbol]/insiders`
+
 ## [0.5.4] - 2025-12-31
 
 ### Added
