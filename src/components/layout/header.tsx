@@ -92,19 +92,19 @@ export function Header() {
       
       <div className="border-b border-[var(--border)] bg-[var(--background)]/90 backdrop-blur-xl">
         <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex h-14 sm:h-16 items-center justify-between gap-2 sm:gap-4">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
+          <div className="relative flex h-14 sm:h-16 items-center justify-between gap-2 sm:gap-4">
+            {/* Logo - Left */}
+            <Link href="/" className="flex items-center gap-2 shrink-0 group">
               <div className="relative">
-                <Logo size={32} />
+                <Logo size={24} />
                 {/* Glow effect on hover */}
                 <div className="absolute inset-0 bg-[var(--accent)] opacity-0 group-hover:opacity-20 blur-lg transition-opacity rounded-full" />
               </div>
-              <span className="text-lg font-bold tracking-tight text-[var(--foreground)]">Noreva</span>
+              <span className="text-base font-bold tracking-tight text-[var(--foreground)]">Noreva</span>
             </Link>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-8">
+            {/* Desktop Navigation - Center */}
+            <nav className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
               <NavLink href="/">Stocks</NavLink>
               <NavLink href="/portfolio">Portfolio</NavLink>
               <NavLink href="/about">About</NavLink>
@@ -118,62 +118,62 @@ export function Header() {
               </a>
             </nav>
 
-            {/* Search Field */}
-            <div ref={searchRef} className="relative hidden sm:block">
-              <div className="relative">
-                <svg
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--foreground-muted)]"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            {/* Right side - Search + Wallet */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Search Field */}
+              <div ref={searchRef} className="relative hidden sm:block">
+                <div className="relative">
+                  <svg
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--foreground-muted)]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => searchQuery && setShowResults(true)}
+                    placeholder="Search stocks..."
+                    className="w-36 lg:w-44 h-9 pl-9 pr-3 text-sm rounded-lg bg-[var(--background-secondary)] border border-[var(--border)] text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] transition-all"
                   />
-                </svg>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onFocus={() => searchQuery && setShowResults(true)}
-                  placeholder="Search stocks..."
-                  className="w-40 lg:w-52 h-9 pl-9 pr-3 text-sm rounded-lg bg-[var(--background-secondary)] border border-[var(--border)] text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] transition-all"
-                />
+                </div>
+
+                {/* Search Results Dropdown */}
+                {showResults && searchResults.length > 0 && (
+                  <div className="absolute top-full right-0 w-64 mt-1 bg-[var(--background-secondary)] border border-[var(--border)] rounded-lg shadow-xl overflow-hidden z-50">
+                    {searchResults.map((stock) => (
+                      <button
+                        key={stock.symbol}
+                        onClick={() => handleSelectStock(stock.symbol)}
+                        className="w-full px-3 py-2 flex items-center gap-3 hover:bg-[var(--background-tertiary)] transition-colors text-left"
+                      >
+                        <span className="font-mono text-sm font-semibold text-[var(--accent)]">
+                          {stock.underlying}
+                        </span>
+                        <span className="text-sm text-[var(--foreground-muted)] truncate">
+                          {stock.name}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* No Results */}
+                {showResults && searchQuery && searchResults.length === 0 && (
+                  <div className="absolute top-full right-0 w-64 mt-1 bg-[var(--background-secondary)] border border-[var(--border)] rounded-lg shadow-xl p-3 z-50">
+                    <p className="text-sm text-[var(--foreground-muted)]">No stocks found</p>
+                  </div>
+                )}
               </div>
 
-              {/* Search Results Dropdown */}
-              {showResults && searchResults.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-[var(--background-secondary)] border border-[var(--border)] rounded-lg shadow-xl overflow-hidden z-50">
-                  {searchResults.map((stock) => (
-                    <button
-                      key={stock.symbol}
-                      onClick={() => handleSelectStock(stock.symbol)}
-                      className="w-full px-3 py-2 flex items-center gap-3 hover:bg-[var(--background-tertiary)] transition-colors text-left"
-                    >
-                      <span className="font-mono text-sm font-semibold text-[var(--accent)]">
-                        {stock.underlying}
-                      </span>
-                      <span className="text-sm text-[var(--foreground-muted)] truncate">
-                        {stock.name}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* No Results */}
-              {showResults && searchQuery && searchResults.length === 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-[var(--background-secondary)] border border-[var(--border)] rounded-lg shadow-xl p-3 z-50">
-                  <p className="text-sm text-[var(--foreground-muted)]">No stocks found</p>
-                </div>
-              )}
-            </div>
-
-            {/* Right side */}
-            <div className="flex items-center gap-2 sm:gap-3">
               {/* Wallet Button */}
               <WalletButton />
               

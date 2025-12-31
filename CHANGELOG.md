@@ -5,19 +5,32 @@ All notable changes to Noreva will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.4] - 2025-12-31
+
+### Added
+- **Global Stock Search** - Search field in header navigation for quick stock switching
+  - Search by symbol (QQQx), name (NVIDIA), underlying (NVDA), or mint address
+  - Available on desktop and mobile
+- **Hero Background** - Added hero3.png background to CTA section on About page
+
+### Changed
+- **Navigation Layout** - Menu items centered, search + wallet on right side
+- **Smaller Logo** - Reduced header logo size for cleaner look
+- **Hero Text Refresh** - "Stocks on-chain. No closing bell." with updated copy
+- **Default Slippage** - Increased to 1% for better route finding
+
+### Removed
+- **10 Tokens** - Removed tokens without actual liquidity: INTCx, CRMx, AVGOx, JPMx, GSx, BACx, PLTRx, WMTx, PFEx, VTIx
+- Now 17 verified tradable tokens
+
 ## [0.5.3] - 2025-12-31
 
 ### Added
-- **Verified Mint Addresses** - Added manually verified Solana mint addresses for all 27 tokens
-- **Expanded Token Whitelist** - Added 14 new verified tokens
-  - Tech: GOOGLx, INTCx, NFLXx, ORCLx, CRMx
-  - Finance: GSx, BACx, HOODx
-  - Other: XOMx, WMTx, KOx, PFEx
-  - ETFs: VTIx, GLDx
+- **Verified Mint Addresses** - Added manually verified Solana mint addresses for all tokens
+- **Expanded Token Whitelist** - Added new verified tokens
 
 ### Fixed
 - **Jupiter Routing** - Now uses verified mint addresses instead of API-provided addresses
-- Tokens like JPMx now route correctly through Jupiter
 
 ### Removed
 - Removed bTSLA, bGME, TQQQx (no liquidity found)

@@ -77,14 +77,14 @@ export default function HomePage() {
             {/* Left: Text content */}
             <div className="max-w-xl">
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
-                <span className="text-[var(--foreground)]">Trade stocks.</span>
+                <span className="text-[var(--foreground)]">Stocks on-chain.</span>
                 <br />
-                <span className="text-gradient">24/7.</span>
+                <span className="text-gradient">No closing bell.</span>
               </h1>
               
               <p className="mt-4 sm:mt-6 text-base sm:text-lg text-[var(--foreground-muted)] leading-relaxed">
-                Tokenized stocks on Solana. Compare real-time prices, 
-                analyze spreads, and trade when traditional markets are closed.
+                Buy and sell NVIDIA, Tesla, Apple and more directly from your wallet. 
+                Instant settlement. Zero borders. Always open.
               </p>
 
               {/* CTA Buttons */}
@@ -93,7 +93,7 @@ export default function HomePage() {
                   onClick={() => document.getElementById('stocks')?.scrollIntoView({ behavior: 'smooth' })}
                   className="w-full sm:w-auto px-6 py-3 bg-[var(--accent)] text-[var(--background)] font-semibold rounded-lg hover:bg-[var(--accent-light)] transition-all shadow-lg shadow-[var(--accent)]/20 text-center"
                 >
-                  Start Trading
+                  Explore Markets
                 </button>
                 <a 
                   href="https://docs.noreva.markets"
@@ -101,7 +101,7 @@ export default function HomePage() {
                   rel="noopener noreferrer"
                   className="w-full sm:w-auto px-6 py-3 border border-[var(--border)] text-[var(--foreground)] font-medium rounded-lg hover:bg-[var(--background-tertiary)] hover:border-[var(--border-hover)] transition-all text-center"
                 >
-                  Learn More
+                  How it works
                 </a>
               </div>
             </div>

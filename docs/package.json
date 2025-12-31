@@ -1,6 +1,6 @@
 {
   "name": "noreva-docs",
-  "version": "1.0.0",
+  "version": "0.5.4",
   "description": "Noreva Documentation",
   "scripts": {
     "dev": "next dev -p 3001",
