@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { truncateAddress } from "@/lib/utils/format";
@@ -12,18 +14,35 @@ import { cn } from "@/lib/utils";
  * Uses the Solana wallet adapter under the hood.
  */
 export function WalletButton() {
+  const router = useRouter();
   const { publicKey, connected, connecting, disconnect, wallet } = useWallet();
   const { setVisible } = useWalletModal();
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const handleClick = () => {
-    if (connected) {
-      // Show disconnect option or toggle dropdown
-      // For simplicity, we'll just disconnect
-      disconnect();
-    } else {
-      // Open wallet selection modal
-      setVisible(true);
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
     }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleConnect = () => {
+    setVisible(true);
+  };
+
+  const handleDisconnect = () => {
+    setShowDropdown(false);
+    disconnect();
+  };
+
+  const handleAccount = () => {
+    setShowDropdown(false);
+    router.push("/account");
   };
 
   // Connecting state
@@ -45,9 +64,12 @@ export function WalletButton() {
     const walletIcon = wallet?.adapter.icon;
 
     return (
-      <div className="flex items-center gap-2">
-        {/* Wallet info pill */}
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--background-tertiary)] border border-[var(--border)]">
+      <div className="relative" ref={dropdownRef}>
+        {/* Wallet button */}
+        <button
+          onClick={() => setShowDropdown(!showDropdown)}
+          className="flex items-center gap-2 h-9 px-3 rounded-lg bg-[var(--background-tertiary)] border border-[var(--border)] hover:bg-[var(--background-hover)] transition-colors"
+        >
           {/* Status dot */}
           <div className="w-2 h-2 rounded-full bg-[var(--positive)]" />
           
@@ -61,18 +83,42 @@ export function WalletButton() {
           )}
           
           {/* Address */}
-          <span className="text-sm font-mono text-[var(--foreground)]">
+          <span className="text-sm font-mono text-[var(--foreground)] hidden sm:inline">
             {truncateAddress(address, 4)}
           </span>
-        </div>
 
-        {/* Disconnect button */}
-        <button
-          onClick={handleClick}
-          className="h-9 px-4 text-sm font-medium rounded-lg border border-[var(--border)] text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[var(--background-tertiary)] transition-colors"
-        >
-          Disconnect
+          {/* Chevron */}
+          <ChevronIcon className={cn(
+            "w-4 h-4 text-[var(--foreground-muted)] transition-transform",
+            showDropdown && "rotate-180"
+          )} />
         </button>
+
+        {/* Dropdown menu */}
+        {showDropdown && (
+          <div className="absolute right-0 top-full mt-2 w-48 bg-[var(--background-secondary)] border border-[var(--border)] rounded-lg shadow-xl overflow-hidden z-50">
+            <div className="px-3 py-2 border-b border-[var(--border)]">
+              <p className="text-xs text-[var(--foreground-muted)]">Connected as</p>
+              <p className="text-sm font-mono text-[var(--foreground)] truncate">{address}</p>
+            </div>
+            
+            <button
+              onClick={handleAccount}
+              className="w-full px-3 py-2.5 flex items-center gap-2 text-sm text-[var(--foreground)] hover:bg-[var(--background-tertiary)] transition-colors"
+            >
+              <UserIcon className="w-4 h-4" />
+              Account Settings
+            </button>
+            
+            <button
+              onClick={handleDisconnect}
+              className="w-full px-3 py-2.5 flex items-center gap-2 text-sm text-[var(--negative)] hover:bg-[var(--background-tertiary)] transition-colors border-t border-[var(--border)]"
+            >
+              <LogoutIcon className="w-4 h-4" />
+              Disconnect
+            </button>
+          </div>
+        )}
       </div>
     );
   }
@@ -80,7 +126,7 @@ export function WalletButton() {
   // Disconnected state
   return (
     <button
-      onClick={handleClick}
+      onClick={handleConnect}
       className="h-9 px-4 text-sm font-medium rounded-lg bg-[var(--accent)] text-[var(--background)] hover:bg-[var(--accent-light)] transition-colors flex items-center gap-2"
     >
       <WalletIcon className="w-4 h-4" />
@@ -102,6 +148,30 @@ function WalletIcon({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
       <path d="M2.273 5.625A4.483 4.483 0 015.25 4.5h13.5c1.141 0 2.183.425 2.977 1.125A3 3 0 0018.75 3H5.25a3 3 0 00-2.977 2.625zM2.273 8.625A4.483 4.483 0 015.25 7.5h13.5c1.141 0 2.183.425 2.977 1.125A3 3 0 0018.75 6H5.25a3 3 0 00-2.977 2.625zM5.25 9a3 3 0 00-3 3v6a3 3 0 003 3h13.5a3 3 0 003-3v-6a3 3 0 00-3-3H15a.75.75 0 00-.75.75 2.25 2.25 0 01-4.5 0A.75.75 0 009 9H5.25z" />
+    </svg>
+  );
+}
+
+function ChevronIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+    </svg>
+  );
+}
+
+function UserIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+    </svg>
+  );
+}
+
+function LogoutIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
     </svg>
   );
 }

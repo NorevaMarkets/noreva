@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { formatUsd, formatNumber } from "@/lib/utils/format";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +12,7 @@ interface StockRowProps {
 }
 
 export function StockRow({ stock, onClick }: StockRowProps) {
-  const { symbol, name, underlying, price, provider } = stock;
+  const { symbol, name, underlying, price, provider, logoUrl } = stock;
   
   const isPositive = price.spread >= 0;
   const spreadBadgeVariant = 
@@ -36,7 +37,7 @@ export function StockRow({ stock, onClick }: StockRowProps) {
         <div className="flex items-center justify-between gap-3">
           {/* Left: Logo + Info */}
           <div className="flex items-center gap-2.5 min-w-0 flex-1">
-            <StockLogo symbol={underlying} size="sm" />
+            <StockLogo symbol={underlying} logoUrl={logoUrl} size="sm" />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
                 <span className="font-semibold text-sm text-[var(--foreground)] truncate group-hover:text-[var(--accent)] transition-colors">
@@ -69,7 +70,7 @@ export function StockRow({ stock, onClick }: StockRowProps) {
       <div className="hidden sm:grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-4">
         {/* Stock Info */}
         <div className="relative flex items-center gap-3 min-w-0">
-          <StockLogo symbol={underlying} />
+          <StockLogo symbol={underlying} logoUrl={logoUrl} />
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <span className="font-semibold text-[var(--foreground)] truncate group-hover:text-[var(--accent)] transition-colors">
@@ -139,8 +140,16 @@ export function StockRow({ stock, onClick }: StockRowProps) {
   );
 }
 
-function StockLogo({ symbol, size = "default" }: { symbol: string; size?: "sm" | "default" }) {
-  // Premium gradient backgrounds
+interface StockLogoProps {
+  symbol: string;
+  logoUrl?: string;
+  size?: "sm" | "default";
+}
+
+function StockLogo({ symbol, logoUrl, size = "default" }: StockLogoProps) {
+  const [imgError, setImgError] = useState(false);
+  
+  // Premium gradient backgrounds for fallback
   const gradients = [
     "from-blue-500 to-blue-600",
     "from-emerald-500 to-emerald-600",
@@ -153,14 +162,37 @@ function StockLogo({ symbol, size = "default" }: { symbol: string; size?: "sm" |
   ];
   
   const gradientIndex = symbol.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) % gradients.length;
+  const sizeClasses = size === "sm" ? "w-8 h-8" : "w-9 h-9";
   
+  // Show real logo if available and not errored
+  if (logoUrl && !imgError) {
+    return (
+      <div
+        className={cn(
+          "rounded-lg flex items-center justify-center overflow-hidden bg-[var(--background-tertiary)] shrink-0",
+          sizeClasses
+        )}
+      >
+        <img
+          src={logoUrl}
+          alt={symbol}
+          className="w-full h-full object-contain p-1"
+          onError={() => setImgError(true)}
+          loading="lazy"
+        />
+      </div>
+    );
+  }
+  
+  // Fallback to gradient with initials
   return (
     <div
       className={cn(
-        "rounded-lg flex items-center justify-center text-white font-bold",
+        "rounded-lg flex items-center justify-center text-white font-bold shrink-0",
         "bg-gradient-to-br shadow-lg",
         gradients[gradientIndex],
-        size === "sm" ? "w-8 h-8 text-[10px]" : "w-9 h-9 text-xs"
+        sizeClasses,
+        size === "sm" ? "text-[10px]" : "text-xs"
       )}
     >
       {symbol.slice(0, 2)}

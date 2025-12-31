@@ -1,18 +1,24 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { formatUsd } from "@/lib/utils/format";
 import { TradingChart } from "@/components/features/stock-detail/trading-chart";
 import { LiquidityPanel } from "@/components/features/stock-detail/liquidity-panel";
 import { TradingPanel } from "@/components/features/stock-detail/trading-panel";
+import { FundamentalsPanel } from "@/components/features/stock-detail/fundamentals-panel";
+import { NewsFeed } from "@/components/features/stock-detail/news-feed";
 import { useRealStocks } from "@/hooks";
+
+// Tab types for the right panel
+type RightPanelTab = "market" | "fundamentals" | "news";
 
 export default function StockDetailPage() {
   const params = useParams();
   const router = useRouter();
   const symbol = params.symbol as string;
+  const [activeTab, setActiveTab] = useState<RightPanelTab>("market");
 
   // Fetch real stock data
   const { stocks, isLoading } = useRealStocks({
@@ -195,26 +201,59 @@ export default function StockDetailPage() {
         </div>
 
         {/* Right: Panels - Full width on mobile, fixed width on desktop */}
-        <div className="w-full lg:w-[280px] flex flex-col bg-[var(--background-card)] min-h-0 lg:overflow-hidden border-t lg:border-t-0 border-[var(--border)]">
-          {/* Market Data Panel */}
-          <div className="border-b border-[var(--border)] lg:flex-1 lg:min-h-0 lg:overflow-y-auto">
-            <LiquidityPanel 
-              symbol={underlying}
-              tokenPrice={price.tokenPrice}
-              stockPrice={price.tradFiPrice}
-              spread={price.spread}
-              mintAddress={(stock as any).mintAddress || null}
-              hasSolana={(stock as any).hasSolana ?? false}
-              volume24h={price.volume24h}
-              marketCap={price.marketCap}
-              change24h={price.change24h}
-              high24h={price.high24h}
-              low24h={price.low24h}
-            />
+        <div className="w-full lg:w-[320px] flex flex-col bg-[var(--background-card)] min-h-0 lg:overflow-hidden border-t lg:border-t-0 border-[var(--border)]">
+          {/* Tab Navigation */}
+          <div className="flex border-b border-[var(--border)] bg-[var(--background-secondary)] shrink-0">
+            <TabButton
+              active={activeTab === "market"}
+              onClick={() => setActiveTab("market")}
+              icon={<ChartBarIcon className="w-3.5 h-3.5" />}
+            >
+              Market
+            </TabButton>
+            <TabButton
+              active={activeTab === "fundamentals"}
+              onClick={() => setActiveTab("fundamentals")}
+              icon={<DocumentIcon className="w-3.5 h-3.5" />}
+            >
+              Fundamentals
+            </TabButton>
+            <TabButton
+              active={activeTab === "news"}
+              onClick={() => setActiveTab("news")}
+              icon={<NewspaperIcon className="w-3.5 h-3.5" />}
+            >
+              News
+            </TabButton>
           </div>
 
-          {/* Trading Panel */}
-          <div className="shrink-0">
+          {/* Tab Content */}
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            {activeTab === "market" && (
+              <LiquidityPanel 
+                symbol={underlying}
+                tokenPrice={price.tokenPrice}
+                stockPrice={price.tradFiPrice}
+                spread={price.spread}
+                mintAddress={(stock as any).mintAddress || null}
+                hasSolana={(stock as any).hasSolana ?? false}
+                volume24h={price.volume24h}
+                marketCap={price.marketCap}
+                change24h={price.change24h}
+                high24h={price.high24h}
+                low24h={price.low24h}
+              />
+            )}
+            {activeTab === "fundamentals" && (
+              <FundamentalsPanel symbol={underlying} />
+            )}
+            {activeTab === "news" && (
+              <NewsFeed symbol={underlying} />
+            )}
+          </div>
+
+          {/* Trading Panel - Always visible */}
+          <div className="shrink-0 border-t border-[var(--border)]">
             <TradingPanel stock={stock} />
           </div>
         </div>
@@ -232,6 +271,59 @@ function CloseIcon({ className }: { className?: string }) {
       className={className}
     >
       <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+    </svg>
+  );
+}
+
+// Tab Button Component
+interface TabButtonProps {
+  children: React.ReactNode;
+  active: boolean;
+  onClick: () => void;
+  icon?: React.ReactNode;
+}
+
+function TabButton({ children, active, onClick, icon }: TabButtonProps) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 text-[10px] sm:text-xs font-medium transition-all relative",
+        active
+          ? "text-[var(--accent)]"
+          : "text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
+      )}
+    >
+      {icon}
+      <span>{children}</span>
+      {active && (
+        <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-[var(--accent)] rounded-full" />
+      )}
+    </button>
+  );
+}
+
+// Icons for tabs
+function ChartBarIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    </svg>
+  );
+}
+
+function DocumentIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    </svg>
+  );
+}
+
+function NewspaperIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
     </svg>
   );
 }

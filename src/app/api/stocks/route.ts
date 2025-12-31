@@ -131,13 +131,36 @@ const VERIFIED_MINT_ADDRESSES: Record<string, string> = {
 };
 
 /**
- * Tokens with VERIFIED Jupiter liquidity on Solana
+ * Local logo paths for stock tokens (pre-downloaded for faster loading)
+ */
+const LOCAL_LOGO_PATHS: Record<string, string> = {
+  "METAx": "/logos/metax.png",
+  "XOMx": "/logos/xomx.png",
+  "MSTRx": "/logos/mstrx.png",
+  "KOx": "/logos/kox.png",
+  "GLDx": "/logos/gldx.png",
+  "NVDAx": "/logos/nvdax.png",
+  "QQQx": "/logos/qqqx.png",
+  "GOOGLx": "/logos/googlx.png",
+  "SPYx": "/logos/spyx.png",
+  "MSFTx": "/logos/msftx.png",
+  "AMZNx": "/logos/amznx.png",
+  "TSLAx": "/logos/tslax.png",
+  "ORCLx": "/logos/orclx.png",
+  "AAPLx": "/logos/aaplx.png",
+  "HOODx": "/logos/hoodx.png",
+  "NFLXx": "/logos/nflxx.png",
+  "COINx": "/logos/coinx.png",
+};
+
+/**
+ * Tokens with VERIFIED liquidity on Solana
  * Only these will be shown for trading
  */
 const TOKENS_WITH_JUPITER_LIQUIDITY = new Set(Object.keys(VERIFIED_MINT_ADDRESSES));
 
 /**
- * Filter tokens to only show tradable stock-like assets with Jupiter liquidity
+ * Filter tokens to only show tradable stock-like assets with liquidity
  * Excludes bonds, money market funds, and tokens without liquidity
  */
 function filterTradableStocks(tokens: BackedToken[]): BackedToken[] {
@@ -360,7 +383,7 @@ function generateTokenizedStockData(
         underlying: underlyingSymbol,
         mintAddress,
         decimals: 8,
-        logoUrl: token.logo,
+        logoUrl: LOCAL_LOGO_PATHS[token.symbol] || token.logo,
         provider: "backed" as const,
         description: token.description,
         isTradingHalted: token.isTradingHalted,

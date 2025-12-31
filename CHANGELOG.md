@@ -16,7 +16,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **Navigation Layout** - Menu items centered, search + wallet on right side
 - **Smaller Logo** - Reduced header logo size for cleaner look
-- **Hero Text Refresh** - "Stocks on-chain. No closing bell." with updated copy
 - **Default Slippage** - Increased to 1% for better route finding
 
 ### Removed
@@ -28,9 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **Verified Mint Addresses** - Added manually verified Solana mint addresses for all tokens
 - **Expanded Token Whitelist** - Added new verified tokens
-
-### Fixed
-- **Jupiter Routing** - Now uses verified mint addresses instead of API-provided addresses
 
 ### Removed
 - Removed bTSLA, bGME, TQQQx (no liquidity found)

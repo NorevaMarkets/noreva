@@ -4,3 +4,8 @@ export { TradingViewWidget } from "./tradingview-widget";
 export { MarketDepth } from "./market-depth";
 export { LiquidityPanel } from "./liquidity-panel";
 export { TradingPanel } from "./trading-panel";
+export { FundamentalsPanel } from "./fundamentals-panel";
+export { NewsFeed } from "./news-feed";
+export { AnalystPanel } from "./analyst-panel";
+export { EarningsPanel } from "./earnings-panel";
+export { InsiderPanel } from "./insider-panel";
