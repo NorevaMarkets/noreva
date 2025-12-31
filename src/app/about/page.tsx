@@ -105,7 +105,7 @@ export default function AboutPage() {
             <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-[var(--background-secondary)] to-transparent z-10 pointer-events-none" />
             
             {/* Scrolling container */}
-            <div className="flex animate-scroll">
+            <div className="flex slider-track">
               {/* First set */}
               <div className="flex shrink-0 items-center gap-16 px-8">
                 <PartnerLogo name="Solana" href="https://solana.com" />
@@ -131,23 +131,6 @@ export default function AboutPage() {
             </div>
           </div>
         </div>
-        
-        <style jsx>{`
-          @keyframes scroll {
-            0% {
-              transform: translateX(0);
-            }
-            100% {
-              transform: translateX(-50%);
-            }
-          }
-          .animate-scroll {
-            animation: scroll 30s linear infinite;
-          }
-          .animate-scroll:hover {
-            animation-play-state: paused;
-          }
-        `}</style>
       </section>
 
       {/* Features - Bento Grid Style */}

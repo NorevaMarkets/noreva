@@ -339,3 +339,21 @@ body {
 .chart-glow {
   animation: chartGlow 2s ease-in-out infinite;
 }
+
+/* Partner logo slider - infinite scroll */
+@keyframes slider {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.slider-track {
+  animation: slider 30s linear infinite;
+}
+
+.slider-track:hover {
+  animation-play-state: paused;
+}
