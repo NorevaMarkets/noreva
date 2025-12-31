@@ -189,8 +189,13 @@ export function TradingPanel({ stock }: TradingPanelProps) {
 
       setStatus("confirming");
 
-      // Execute the swap (pass just the transaction string)
-      const result = await executeSwap(swapTx.swapTransaction, signTransaction, connection);
+      // Execute the swap with lastValidBlockHeight for better confirmation
+      const result = await executeSwap(
+        swapTx.swapTransaction, 
+        signTransaction, 
+        connection,
+        swapTx.lastValidBlockHeight
+      );
 
       if (result.success && result.signature) {
         skipFetchRef.current = true; // Prevent fetching during success display

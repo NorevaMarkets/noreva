@@ -149,7 +149,8 @@ export async function getSwapTransaction(
 export async function executeSwap(
   swapTransaction: string,
   signTransaction: (tx: VersionedTransaction) => Promise<VersionedTransaction>,
-  connection?: Connection
+  connection?: Connection,
+  lastValidBlockHeight?: number
 ): Promise<SwapResult> {
   try {
     const conn = connection || new Connection(SOLANA_RPC);
@@ -158,19 +159,43 @@ export async function executeSwap(
     const swapTransactionBuf = Buffer.from(swapTransaction, "base64");
     const transaction = VersionedTransaction.deserialize(swapTransactionBuf);
     
+    console.log("[Swap] Requesting wallet signature...");
+    
     // Sign the transaction with the user's wallet
     const signedTransaction = await signTransaction(transaction);
     
-    // Send the transaction
+    console.log("[Swap] Transaction signed, sending...");
+    
+    // Send the transaction with optimized settings
     const signature = await conn.sendTransaction(signedTransaction, {
       skipPreflight: false,
-      maxRetries: 3,
+      maxRetries: 2,
+      preflightCommitment: "confirmed",
     });
     
-    // Confirm the transaction
-    const confirmation = await conn.confirmTransaction(signature, "confirmed");
+    console.log("[Swap] Transaction sent:", signature);
+    
+    // Get blockhash for confirmation (use lastValidBlockHeight if provided)
+    const { blockhash } = await conn.getLatestBlockhash("confirmed");
+    
+    // Use the new confirmTransaction API with timeout
+    const confirmationPromise = conn.confirmTransaction({
+      signature,
+      blockhash,
+      lastValidBlockHeight: lastValidBlockHeight || (await conn.getBlockHeight()) + 150,
+    }, "confirmed");
+    
+    // Add a manual timeout (60 seconds)
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error("Transaction confirmation timeout")), 60000);
+    });
+    
+    console.log("[Swap] Waiting for confirmation...");
+    
+    const confirmation = await Promise.race([confirmationPromise, timeoutPromise]);
     
     if (confirmation.value.err) {
+      console.error("[Swap] Transaction failed:", confirmation.value.err);
       return {
         success: false,
         error: "Transaction failed: " + JSON.stringify(confirmation.value.err),
@@ -178,15 +203,27 @@ export async function executeSwap(
       };
     }
     
+    console.log("[Swap] Transaction confirmed!");
+    
     return {
       success: true,
       signature,
     };
   } catch (error) {
-    console.error("Swap execution error:", error);
+    console.error("[Swap] Execution error:", error);
+    
+    // Check if user rejected the transaction
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    if (errorMessage.includes("User rejected") || errorMessage.includes("rejected")) {
+      return {
+        success: false,
+        error: "Transaction rejected by user",
+      };
+    }
+    
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: errorMessage,
     };
   }
 }
