@@ -340,6 +340,47 @@ body {
   animation: chartGlow 2s ease-in-out infinite;
 }
 
+/* Price flash animations */
+@keyframes priceFlashUp {
+  0% { 
+    background-color: transparent;
+    color: inherit;
+  }
+  15% { 
+    background-color: rgba(74, 222, 128, 0.25);
+    color: var(--positive);
+  }
+  100% { 
+    background-color: transparent;
+    color: inherit;
+  }
+}
+
+@keyframes priceFlashDown {
+  0% { 
+    background-color: transparent;
+    color: inherit;
+  }
+  15% { 
+    background-color: rgba(248, 113, 113, 0.25);
+    color: var(--negative);
+  }
+  100% { 
+    background-color: transparent;
+    color: inherit;
+  }
+}
+
+.price-flash-up {
+  animation: priceFlashUp 800ms ease-out;
+  border-radius: 4px;
+}
+
+.price-flash-down {
+  animation: priceFlashDown 800ms ease-out;
+  border-radius: 4px;
+}
+
 /* Partner logo slider - infinite scroll */
 @keyframes slider {
   0% {

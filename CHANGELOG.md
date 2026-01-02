@@ -5,6 +5,22 @@ All notable changes to Noreva will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0] - 2026-01-02
+
+### Added
+- **Animated Price Updates** - Prices flash green/red when they change
+  - `AnimatedPrice` component for USD values
+  - `AnimatedPercent` component for percentage values
+  - CSS keyframe animations for smooth flash effect
+  - Applied to Stock Table, Trade Page Header, and Sidebar
+  - Visual feedback shows data is live updating
+
+### Technical
+- New component: `src/components/ui/animated-price.tsx`
+- CSS animations: `priceFlashUp`, `priceFlashDown` in globals.css
+- Tracks previous value to determine direction of change
+- 800ms animation duration for subtle but noticeable effect
+
 ## [0.11.0] - 2026-01-02
 
 ### Added

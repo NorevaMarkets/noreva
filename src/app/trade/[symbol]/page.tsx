@@ -16,6 +16,7 @@ import {
   ChartSkeleton, 
   TradingPanelSkeleton 
 } from "@/components/ui/skeleton";
+import { AnimatedPrice, AnimatedPercent } from "@/components/ui/animated-price";
 import type { StockWithPrice } from "@/types";
 
 // Tab types for the right panel
@@ -231,7 +232,7 @@ export default function TradePage() {
                     </span>
                   </div>
                   <span className="text-xl font-bold font-mono tabular-nums text-[var(--foreground)]">
-                    {formatUsd(price.tokenPrice)}
+                    <AnimatedPrice value={price.tokenPrice} />
                   </span>
                 </div>
 
@@ -243,7 +244,7 @@ export default function TradePage() {
                     {underlying} Stock
                   </div>
                   <span className="text-lg font-semibold font-mono tabular-nums text-[var(--foreground-muted)]">
-                    {formatUsd(price.tradFiPrice)}
+                    <AnimatedPrice value={price.tradFiPrice} />
                   </span>
                 </div>
 
@@ -258,7 +259,7 @@ export default function TradePage() {
                     "text-lg font-semibold font-mono tabular-nums",
                     price.spread >= 0 ? "text-[var(--positive)]" : "text-[var(--negative)]"
                   )}>
-                    {price.spread >= 0 ? "+" : ""}{price.spread.toFixed(2)}%
+                    <AnimatedPercent value={price.spread} />
                   </span>
                 </div>
               </div>
@@ -429,13 +430,13 @@ function StockSidebarItem({
       {/* Price & Spread */}
       <div className="text-right shrink-0">
         <div className="font-mono text-[10px] font-semibold text-[var(--foreground)]">
-          {formatUsd(price.tokenPrice)}
+          <AnimatedPrice value={price.tokenPrice} />
         </div>
         <div className={cn(
           "font-mono text-[9px]",
           isPositive ? "text-[var(--positive)]" : "text-[var(--negative)]"
         )}>
-          {isPositive ? "+" : ""}{price.spread.toFixed(2)}%
+          <AnimatedPercent value={price.spread} />
         </div>
       </div>
     </div>
