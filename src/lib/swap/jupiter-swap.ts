@@ -180,6 +180,30 @@ export async function executeSwap(
     console.log("[Swap] Transaction blockhash:", transactionBlockhash);
     console.log("[Swap] lastValidBlockHeight from Jupiter:", lastValidBlockHeight);
     
+    // Pre-simulate transaction for Phantom (recommended by Phantom docs)
+    // This helps Phantom show accurate warnings and avoids "unsafe dApp" messages
+    // We do NOT block on simulation failure - just log it
+    try {
+      console.log("[Swap] Pre-simulating transaction (for Phantom compatibility)...");
+      const simulation = await conn.simulateTransaction(transaction, {
+        sigVerify: false, // Don't verify signatures (we haven't signed yet)
+        commitment: "confirmed",
+        replaceRecentBlockhash: true,
+      });
+      
+      if (simulation.value.err) {
+        // Log but don't block - simulation can fail for Token-2022 tokens
+        // but the actual transaction may still succeed on-chain
+        console.warn("[Swap] Simulation warning (continuing anyway):", simulation.value.err);
+        console.warn("[Swap] Simulation logs:", simulation.value.logs?.slice(-5));
+      } else {
+        console.log("[Swap] Simulation passed ✓");
+      }
+    } catch (simError) {
+      // Simulation failed - still continue with the swap
+      console.warn("[Swap] Simulation check failed (continuing anyway):", simError);
+    }
+    
     // Stage 1: Requesting signature
     updateStatus("signing");
     console.log("[Swap] Requesting wallet signature...");
