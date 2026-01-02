@@ -360,8 +360,8 @@ function StockSidebarItem({
   const { underlying, price } = stock;
   const isPositive = price.spread >= 0;
 
+  // Collapsed view - just symbol (no animated components to avoid hook issues)
   if (isCollapsed) {
-    // Collapsed view - just symbol
     return (
       <button
         onClick={onClick}
@@ -427,16 +427,16 @@ function StockSidebarItem({
         </span>
       </div>
 
-      {/* Price & Spread */}
+      {/* Price & Spread - use static values to avoid hook issues */}
       <div className="text-right shrink-0">
         <div className="font-mono text-[10px] font-semibold text-[var(--foreground)]">
-          <AnimatedPrice value={price.tokenPrice} />
+          {formatUsd(price.tokenPrice)}
         </div>
         <div className={cn(
           "font-mono text-[9px]",
           isPositive ? "text-[var(--positive)]" : "text-[var(--negative)]"
         )}>
-          <AnimatedPercent value={price.spread} />
+          {isPositive ? "+" : ""}{price.spread.toFixed(2)}%
         </div>
       </div>
     </div>
