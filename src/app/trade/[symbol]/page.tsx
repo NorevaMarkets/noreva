@@ -16,7 +16,6 @@ import {
   ChartSkeleton, 
   TradingPanelSkeleton 
 } from "@/components/ui/skeleton";
-import { AnimatedPrice, AnimatedPercent } from "@/components/ui/animated-price";
 import type { StockWithPrice } from "@/types";
 
 // Tab types for the right panel
@@ -232,7 +231,7 @@ export default function TradePage() {
                     </span>
                   </div>
                   <span className="text-xl font-bold font-mono tabular-nums text-[var(--foreground)]">
-                    <AnimatedPrice value={price.tokenPrice} />
+                    {formatUsd(price.tokenPrice)}
                   </span>
                 </div>
 
@@ -244,7 +243,7 @@ export default function TradePage() {
                     {underlying} Stock
                   </div>
                   <span className="text-lg font-semibold font-mono tabular-nums text-[var(--foreground-muted)]">
-                    <AnimatedPrice value={price.tradFiPrice} />
+                    {formatUsd(price.tradFiPrice)}
                   </span>
                 </div>
 
@@ -259,7 +258,7 @@ export default function TradePage() {
                     "text-lg font-semibold font-mono tabular-nums",
                     price.spread >= 0 ? "text-[var(--positive)]" : "text-[var(--negative)]"
                   )}>
-                    <AnimatedPercent value={price.spread} />
+                    {price.spread >= 0 ? "+" : ""}{price.spread.toFixed(2)}%
                   </span>
                 </div>
               </div>
