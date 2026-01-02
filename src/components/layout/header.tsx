@@ -106,7 +106,7 @@ export function Header() {
             {/* Desktop Navigation - Center */}
             <nav className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
               <NavLink href="/">Stocks</NavLink>
-              <NavLink href="/trade/NVDA">Trade</NavLink>
+              <NavLink href="/trade">Trade</NavLink>
               <NavLink href="/portfolio">Portfolio</NavLink>
               <NavLink href="/about">About</NavLink>
               <a 
@@ -252,7 +252,7 @@ export function Header() {
               <MobileNavLink href="/" onClick={() => setMobileMenuOpen(false)}>
                 Stocks
               </MobileNavLink>
-              <MobileNavLink href="/trade/NVDA" onClick={() => setMobileMenuOpen(false)}>
+              <MobileNavLink href="/trade" onClick={() => setMobileMenuOpen(false)}>
                 Trade
               </MobileNavLink>
               <MobileNavLink href="/portfolio" onClick={() => setMobileMenuOpen(false)}>

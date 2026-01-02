@@ -36,7 +36,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/trade/NVDA" className="text-sm text-[var(--foreground-muted)] hover:text-[var(--accent)] transition-colors">
+                <Link href="/trade" className="text-sm text-[var(--foreground-muted)] hover:text-[var(--accent)] transition-colors">
                   Trade
                 </Link>
               </li>
