@@ -289,7 +289,7 @@ export default function PrivacyPage() {
                 practices, please contact us through:
               </p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>Our official X (Twitter) account</li>
+                <li>Our official <a href="https://x.com/NorevaMarkets" target="_blank" rel="noopener noreferrer" className="text-[var(--gold)] hover:underline">X (Twitter) account</a></li>
                 <li>Our GitHub repository</li>
               </ul>
               <p className="leading-relaxed mt-4">

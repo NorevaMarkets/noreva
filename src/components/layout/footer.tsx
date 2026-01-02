@@ -84,7 +84,7 @@ export function Footer() {
             </h3>
             <div className="flex sm:flex-col gap-4 sm:gap-3">
               <a 
-                href="https://x.com" 
+                href="https://x.com/NorevaMarkets" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-sm text-[var(--foreground-muted)] hover:text-[var(--accent)] transition-colors flex items-center gap-2"

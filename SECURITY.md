@@ -9,7 +9,7 @@ The Noreva team takes security seriously. If you discover a security vulnerabili
 **DO NOT** create a public GitHub issue for security vulnerabilities.
 
 Instead, please report security issues via:
-- Or via direct message on [X](https://x.com)
+- Or via direct message on [X](https://x.com/NorevaMarkets)
 
 ### What to Include
 

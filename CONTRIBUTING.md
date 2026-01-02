@@ -69,7 +69,7 @@ When reporting issues, please include:
 
 ## Questions?
 
-Feel free to open an issue or reach out on [X](https://x.com).
+Feel free to open an issue or reach out on [X](https://x.com/NorevaMarkets).
 
 ---
 

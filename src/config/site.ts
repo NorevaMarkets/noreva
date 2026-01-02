@@ -17,7 +17,7 @@ export const siteConfig = {
   
   // Social Links
   links: {
-    twitter: "https://x.com",
+    twitter: "https://x.com/NorevaMarkets",
     github: "https://github.com/NorevaMarkets/noreva",
   },
   

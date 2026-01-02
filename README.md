@@ -4,7 +4,7 @@
 
 Noreva is a web application for tracking and trading tokenized stocks on the Solana blockchain. Compare real-time prices between tokenized stocks and their underlying securities, analyze spreads, and trade when traditional markets are closed.
 
-**Live:** [noreva.markets](https://www.noreva.markets/) | **Docs:** [docs.noreva.markets](https://docs.noreva.markets) | **X:** [x.com](https://x.com)
+**Live:** [noreva.markets](https://www.noreva.markets/) | **Docs:** [docs.noreva.markets](https://docs.noreva.markets) | **X:** [@NorevaMarkets](https://x.com/NorevaMarkets)
 
 ## Features
 

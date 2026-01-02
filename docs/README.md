@@ -85,4 +85,4 @@ docs/
 
 - **Main App:** [noreva.markets](https://noreva.markets)
 - **GitHub:** [github.com/NorevaMarkets/noreva](https://github.com/NorevaMarkets/noreva)
-- **X (Twitter):** [x.com](https://x.com)
+- **X (Twitter):** [@NorevaMarkets](https://x.com/NorevaMarkets)
