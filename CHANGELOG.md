@@ -5,6 +5,28 @@ All notable changes to Noreva will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.1] - 2026-01-02
+
+### Added
+- **Slippage Settings UI** - Configurable slippage tolerance in Trading Panel
+  - Preset buttons: 0.5%, 1%, 2.5%, 5%
+  - Custom input for any value (0.1% - 50%)
+  - Settings dropdown with gear icon
+  - Info text explaining what slippage does
+  - Warning messages for low (<0.5%) or high (>5%) slippage
+  - Max slippage displayed in quote preview
+  - Previously hardcoded at 2.5%, now user-configurable
+
+### Changed
+- **Quote Preview** - Now shows "Max Slippage" alongside price impact
+- **Jupiter API Calls** - Dynamic slippage from user settings instead of fixed value
+
+### Technical
+- New state: `slippage`, `showSlippageSettings`, `customSlippage`
+- New memo: `slippageBps` (converts percentage to basis points)
+- Click-outside handler to close dropdown
+- New icons: `SettingsIcon`, `CloseSmallIcon`
+
 ## [0.9.0] - 2026-01-02
 
 ### Added

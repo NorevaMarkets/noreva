@@ -24,6 +24,12 @@ interface TradingPanelProps {
 type PaymentToken = "USDC" | "SOL";
 type SwapStatus = "idle" | "fetching" | "ready" | "signing" | "sending" | "confirming" | "success" | "error";
 
+// Slippage presets in percentage
+const SLIPPAGE_PRESETS = [0.5, 1, 2.5, 5];
+const DEFAULT_SLIPPAGE = 2.5;
+const MIN_SLIPPAGE = 0.1;
+const MAX_SLIPPAGE = 50;
+
 export function TradingPanel({ stock }: TradingPanelProps) {
   const { connected, publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
@@ -38,6 +44,35 @@ export function TradingPanel({ stock }: TradingPanelProps) {
   const [status, setStatus] = useState<SwapStatus>("idle");
   const [error, setError] = useState<string | null>(null);
   const [txSignature, setTxSignature] = useState<string | null>(null);
+  
+  // Slippage settings
+  const [slippage, setSlippage] = useState<number>(DEFAULT_SLIPPAGE);
+  const [showSlippageSettings, setShowSlippageSettings] = useState(false);
+  const [customSlippage, setCustomSlippage] = useState<string>("");
+  const slippageRef = useRef<HTMLDivElement>(null);
+  
+  // Convert slippage percentage to basis points for Jupiter API
+  const slippageBps = useMemo(() => Math.round(slippage * 100), [slippage]);
+  
+  // Close slippage dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (slippageRef.current && !slippageRef.current.contains(event.target as Node)) {
+        setShowSlippageSettings(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+  
+  // Handle custom slippage input
+  const handleCustomSlippageChange = (value: string) => {
+    setCustomSlippage(value);
+    const parsed = parseFloat(value.replace(",", "."));
+    if (!isNaN(parsed) && parsed >= MIN_SLIPPAGE && parsed <= MAX_SLIPPAGE) {
+      setSlippage(parsed);
+    }
+  };
   
   // Stock token balance
   const [stockBalance, setStockBalance] = useState<number>(0);
@@ -150,7 +185,7 @@ export function TradingPanel({ stock }: TradingPanelProps) {
         inputMint,
         outputMint,
         amount: inputAmount,
-        slippageBps: 250, // 2.5% slippage (tokenized stocks have less liquidity)
+        slippageBps,
         userPublicKey: publicKey.toString(),
       });
 
@@ -171,7 +206,7 @@ export function TradingPanel({ stock }: TradingPanelProps) {
       cancelled = true;
       clearTimeout(debounceTimer);
     };
-  }, [inputAmount, tokenMintAddress, publicKey, paymentToken, mode]);
+  }, [inputAmount, tokenMintAddress, publicKey, paymentToken, mode, slippageBps]);
 
   // Handle swap execution
   const handleSwap = async () => {
@@ -194,12 +229,12 @@ export function TradingPanel({ stock }: TradingPanelProps) {
         outputMint = paymentToken === "USDC" ? TOKENS.USDC : TOKENS.SOL;
       }
 
-      console.log("[Swap] Getting fresh quote...");
+      console.log("[Swap] Getting fresh quote with slippage:", slippage, "%");
       const freshQuote = await getSwapQuote({
         inputMint,
         outputMint,
         amount: inputAmount,
-        slippageBps: 250, // 2.5% slippage
+        slippageBps,
         userPublicKey: publicKey.toString(),
       });
 
@@ -404,10 +439,107 @@ export function TradingPanel({ stock }: TradingPanelProps) {
 
   return (
     <div className="p-3 flex flex-col h-full relative overflow-hidden">
-      {/* Header with balance */}
+      {/* Header with balance and settings */}
       <div className="flex items-center justify-between mb-2">
-        <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--foreground-muted)]">
-          Swap
+        <div className="flex items-center gap-2">
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--foreground-muted)]">
+            Swap
+          </div>
+          {/* Slippage Settings Button */}
+          <div ref={slippageRef} className="relative">
+            <button
+              onClick={() => setShowSlippageSettings(!showSlippageSettings)}
+              className={cn(
+                "flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-medium transition-all",
+                showSlippageSettings 
+                  ? "bg-[var(--accent)] text-[var(--background)]"
+                  : "bg-[var(--background-tertiary)] text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
+              )}
+              title="Slippage Settings"
+            >
+              <SettingsIcon className="w-2.5 h-2.5" />
+              <span>{slippage}%</span>
+            </button>
+            
+            {/* Slippage Dropdown */}
+            {showSlippageSettings && (
+              <div className="absolute top-full left-0 mt-1 w-48 p-2 bg-[var(--background-secondary)] border border-[var(--border)] rounded-lg shadow-xl z-20">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[9px] font-semibold text-[var(--foreground)] uppercase tracking-wider">
+                    Slippage Tolerance
+                  </span>
+                  <button
+                    onClick={() => setShowSlippageSettings(false)}
+                    className="text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
+                  >
+                    <CloseSmallIcon className="w-3 h-3" />
+                  </button>
+                </div>
+                
+                {/* Info text */}
+                <p className="text-[8px] text-[var(--foreground-subtle)] mb-2 leading-relaxed">
+                  Your transaction will revert if the price changes unfavorably by more than this percentage.
+                </p>
+                
+                {/* Preset buttons */}
+                <div className="grid grid-cols-4 gap-1 mb-2">
+                  {SLIPPAGE_PRESETS.map((preset) => (
+                    <button
+                      key={preset}
+                      onClick={() => {
+                        setSlippage(preset);
+                        setCustomSlippage("");
+                      }}
+                      className={cn(
+                        "py-1.5 text-[9px] font-medium rounded transition-all",
+                        slippage === preset && !customSlippage
+                          ? "bg-[var(--accent)] text-[var(--background)]"
+                          : "bg-[var(--background-tertiary)] text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[var(--background-elevated)]"
+                      )}
+                    >
+                      {preset}%
+                    </button>
+                  ))}
+                </div>
+                
+                {/* Custom input */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={customSlippage}
+                    onChange={(e) => handleCustomSlippageChange(e.target.value)}
+                    placeholder="Custom"
+                    className={cn(
+                      "w-full px-2 py-1.5 pr-6 text-[9px] font-mono rounded bg-[var(--background-tertiary)] border text-[var(--foreground)] placeholder-[var(--foreground-subtle)] focus:outline-none transition-colors",
+                      customSlippage && parseFloat(customSlippage.replace(",", ".")) === slippage
+                        ? "border-[var(--accent)]"
+                        : "border-[var(--border)] focus:border-[var(--accent)]/50"
+                    )}
+                  />
+                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-[var(--foreground-subtle)]">
+                    %
+                  </span>
+                </div>
+                
+                {/* Warning for high/low slippage */}
+                {slippage < 0.5 && (
+                  <div className="mt-2 p-1.5 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded">
+                    <p className="text-[8px] text-[var(--accent)]">
+                      ⚠️ Low slippage may cause transaction failure
+                    </p>
+                  </div>
+                )}
+                {slippage > 5 && (
+                  <div className="mt-2 p-1.5 bg-[var(--negative)]/10 border border-[var(--negative)]/30 rounded">
+                    <p className="text-[8px] text-[var(--negative)]">
+                      ⚠️ High slippage - you may receive significantly less
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
         <div className="text-[9px] text-[var(--foreground-subtle)]">
           {(isLoadingBalance || isLoadingStockBalance) ? (
@@ -597,7 +729,7 @@ export function TradingPanel({ stock }: TradingPanelProps) {
               {outputAmount.toFixed(mode === "buy" ? 4 : 2)} {mode === "buy" ? stock.underlying : paymentToken}
             </span>
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-1">
             <span className="text-[8px] text-[var(--foreground-subtle)]">Price Impact</span>
             <span className={cn(
               "text-[8px] font-mono",
@@ -605,6 +737,16 @@ export function TradingPanel({ stock }: TradingPanelProps) {
               quote.priceImpactPct < 3 ? "text-[var(--accent)]" : "text-[var(--negative)]"
             )}>
               {quote.priceImpactPct.toFixed(2)}%
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-[8px] text-[var(--foreground-subtle)]">Max Slippage</span>
+            <span className={cn(
+              "text-[8px] font-mono",
+              slippage <= 1 ? "text-[var(--positive)]" : 
+              slippage <= 3 ? "text-[var(--foreground-muted)]" : "text-[var(--accent)]"
+            )}>
+              {slippage}%
             </span>
           </div>
         </div>
@@ -654,5 +796,23 @@ export function TradingPanel({ stock }: TradingPanelProps) {
         Swaps powered by Jupiter Aggregator
       </p>
     </div>
+  );
+}
+
+// Icon components
+function SettingsIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+  );
+}
+
+function CloseSmallIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+    </svg>
   );
 }
