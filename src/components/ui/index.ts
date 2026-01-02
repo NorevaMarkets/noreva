@@ -7,4 +7,3 @@ export * from "./skeleton";
 export * from "./wallet-button";
 export * from "./page-transition";
 export * from "./animated-section";
-export * from "./animated-price";

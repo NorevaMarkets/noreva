@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { formatUsd, formatNumber } from "@/lib/utils/format";
 import { Badge } from "@/components/ui/badge";
-import { AnimatedPrice, AnimatedPercent } from "@/components/ui/animated-price";
 import type { StockWithPrice } from "@/types";
 
 interface StockRowProps {
@@ -99,15 +98,15 @@ export function StockRow({ stock, onClick, isFavorite = false, onToggleFavorite,
 
           {/* Right: Price + Spread */}
           <div className="text-right shrink-0">
-            <div className="font-mono font-semibold text-sm text-[var(--foreground)] tabular-nums">
-              <AnimatedPrice value={price.tokenPrice} />
-            </div>
+            <p className="font-mono font-semibold text-sm text-[var(--foreground)] tabular-nums">
+              {formatUsd(price.tokenPrice)}
+            </p>
             <div className={cn(
               "inline-flex items-center gap-0.5 text-[11px] font-mono font-medium",
               isPositive ? "text-[var(--positive)]" : "text-[var(--negative)]"
             )}>
               <span className="text-[9px]">{isPositive ? "▲" : "▼"}</span>
-              <AnimatedPercent value={price.spread} />
+              {price.spread > 0 ? "+" : ""}{price.spread.toFixed(2)}%
             </div>
           </div>
         </div>
@@ -161,16 +160,16 @@ export function StockRow({ stock, onClick, isFavorite = false, onToggleFavorite,
 
         {/* Token Price */}
         <div className="relative text-right">
-          <div className="font-mono font-semibold text-[var(--foreground)] tabular-nums">
-            <AnimatedPrice value={price.tokenPrice} />
-          </div>
+          <p className="font-mono font-semibold text-[var(--foreground)] tabular-nums">
+            {formatUsd(price.tokenPrice)}
+          </p>
         </div>
 
         {/* TradFi Price */}
         <div className="relative text-right hidden md:block">
-          <div className="font-mono text-[var(--foreground-muted)] tabular-nums text-sm">
-            <AnimatedPrice value={price.tradFiPrice} />
-          </div>
+          <p className="font-mono text-[var(--foreground-muted)] tabular-nums text-sm">
+            {formatUsd(price.tradFiPrice)}
+          </p>
           <p className="text-[10px] text-[var(--foreground-subtle)]">
             {underlying}
           </p>
@@ -185,7 +184,7 @@ export function StockRow({ stock, onClick, isFavorite = false, onToggleFavorite,
               : "bg-[var(--negative)]/10 text-[var(--negative)]"
           )}>
             <span className="text-[10px]">{isPositive ? "▲" : "▼"}</span>
-            <AnimatedPercent value={price.spread} />
+            {price.spread > 0 ? "+" : ""}{price.spread.toFixed(2)}%
           </div>
           <p className="text-[10px] text-[var(--foreground-subtle)] mt-0.5 hidden lg:block">
             {price.spreadDirection}
