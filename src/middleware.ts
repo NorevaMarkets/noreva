@@ -15,6 +15,11 @@ function isPublicRoute(pathname: string): boolean {
 }
 
 export function middleware(request: NextRequest) {
+  // TEMPORARILY DISABLED FOR DEBUGGING
+  // TODO: Re-enable password protection after fixing React error #310
+  return NextResponse.next();
+  
+  /*
   const { pathname } = request.nextUrl;
 
   // Allow public routes
@@ -45,6 +50,7 @@ export function middleware(request: NextRequest) {
   }
 
   return NextResponse.next();
+  */
 }
 
 export const config = {
