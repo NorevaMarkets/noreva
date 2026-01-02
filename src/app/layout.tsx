@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { WalletProvider } from "@/components/providers/wallet-provider";
+import { AccessGate } from "@/components/providers/access-gate";
 import { siteConfig } from "@/config/site";
 import { PageTransitionProvider } from "@/components/providers/page-transition-provider";
 import { Toaster } from "sonner";
@@ -83,34 +84,41 @@ export default function RootLayout({
       <body
         className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
-        <WalletProvider>
-          <div className="relative min-h-screen flex flex-col">
-            <Header />
-            <main className="flex-1">
-              <PageTransitionProvider>
-                {children}
-              </PageTransitionProvider>
-            </main>
-            <Footer />
-          </div>
-          <Toaster 
-            theme="dark"
-            position="top-right"
-            toastOptions={{
-              style: {
-                background: 'var(--background-secondary)',
-                border: '1px solid var(--border)',
-                color: 'var(--foreground)',
-              },
-              classNames: {
-                success: 'border-[var(--positive)]/30',
-                error: 'border-[var(--negative)]/30',
-                warning: 'border-[var(--accent)]/30',
-              },
-            }}
-            richColors
-          />
-        </WalletProvider>
+        {/* 
+          ACCESS GATE - Password protection for the entire app
+          To disable: Set ACCESS_GATE_ENABLED to false in access-gate.tsx
+          To remove completely: Remove <AccessGate> wrapper below
+        */}
+        <AccessGate>
+          <WalletProvider>
+            <div className="relative min-h-screen flex flex-col">
+              <Header />
+              <main className="flex-1">
+                <PageTransitionProvider>
+                  {children}
+                </PageTransitionProvider>
+              </main>
+              <Footer />
+            </div>
+            <Toaster 
+              theme="dark"
+              position="top-right"
+              toastOptions={{
+                style: {
+                  background: 'var(--background-secondary)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--foreground)',
+                },
+                classNames: {
+                  success: 'border-[var(--positive)]/30',
+                  error: 'border-[var(--negative)]/30',
+                  warning: 'border-[var(--accent)]/30',
+                },
+              }}
+              richColors
+            />
+          </WalletProvider>
+        </AccessGate>
       </body>
     </html>
   );

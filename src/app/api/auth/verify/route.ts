@@ -1,60 +1,38 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-export async function POST(request: NextRequest) {
+/**
+ * POST /api/auth/verify
+ * 
+ * Verifies the access password against the environment variable.
+ * Used by the AccessGate component for password protection.
+ * 
+ * Environment Variable: SITE_PASSWORD
+ * - If not set: Access is granted automatically (dev mode)
+ * - If set: Password must match to grant access
+ */
+export async function POST(request: Request) {
   try {
     const { password } = await request.json();
-
-    // Get the site password from environment variable
     const sitePassword = process.env.SITE_PASSWORD;
 
-    // If no password is set in env, allow access (for development)
+    // If no password is configured, allow access (useful for development)
     if (!sitePassword) {
-      console.warn("[Auth] SITE_PASSWORD not set - allowing access");
-      const response = NextResponse.json({ success: true });
-      response.cookies.set("noreva_auth", "authenticated", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 60 * 60 * 24 * 7, // 7 days
-        path: "/",
-      });
-      return response;
+      return NextResponse.json({ success: true });
     }
 
-    // Validate password
+    // Check password
     if (password === sitePassword) {
-      const response = NextResponse.json({ success: true });
-      
-      // Set auth cookie
-      response.cookies.set("noreva_auth", "authenticated", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 60 * 60 * 24 * 7, // 7 days
-        path: "/",
-      });
-
-      return response;
+      return NextResponse.json({ success: true });
     }
 
-    // Invalid password
     return NextResponse.json(
       { success: false, error: "Invalid password" },
       { status: 401 }
     );
-  } catch (error) {
-    console.error("[Auth] Error:", error);
+  } catch {
     return NextResponse.json(
-      { success: false, error: "Server error" },
-      { status: 500 }
+      { success: false, error: "Invalid request" },
+      { status: 400 }
     );
   }
 }
-
-// Logout endpoint
-export async function DELETE() {
-  const response = NextResponse.json({ success: true });
-  response.cookies.delete("noreva_auth");
-  return response;
-}
-
