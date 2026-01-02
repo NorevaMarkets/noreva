@@ -246,11 +246,13 @@ export async function executeSwap(
     } catch (confirmError) {
       // If confirmation times out or fails, check if the transaction actually succeeded
       console.log("[Swap] Confirmation error, checking transaction status...");
+      console.log("[Swap] Confirm error details:", confirmError);
       
       try {
         // Wait a moment and check the signature status
         await new Promise(resolve => setTimeout(resolve, 2000));
         const status = await conn.getSignatureStatus(signature);
+        console.log("[Swap] Signature status:", JSON.stringify(status.value, null, 2));
         
         if (status.value?.confirmationStatus === "confirmed" || status.value?.confirmationStatus === "finalized") {
           if (!status.value.err) {
@@ -260,8 +262,20 @@ export async function executeSwap(
               success: true,
               signature,
             };
+          } else {
+            // Transaction failed on-chain
+            console.error("[Swap] Transaction failed on-chain:", status.value.err);
+            updateStatus("error");
+            return {
+              success: false,
+              error: "Transaction failed on-chain. Check Solscan for details.",
+              signature,
+            };
           }
         }
+        
+        // Transaction not yet confirmed - might still be processing
+        console.log("[Swap] Transaction status unknown, may still be processing");
       } catch (statusError) {
         console.error("[Swap] Error checking status:", statusError);
       }
@@ -271,10 +285,22 @@ export async function executeSwap(
     }
   } catch (error) {
     console.error("[Swap] Execution error:", error);
+    console.error("[Swap] Error type:", typeof error);
+    console.error("[Swap] Error stringified:", JSON.stringify(error, Object.getOwnPropertyNames(error as object)));
     updateStatus("error");
     
+    // Extract error message from various error types
+    let errorMessage = "Unknown error";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === "object" && error !== null) {
+      // Handle non-Error objects (like Solana errors)
+      errorMessage = JSON.stringify(error);
+    } else if (typeof error === "string") {
+      errorMessage = error;
+    }
+    
     // Check if user rejected the transaction
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     if (errorMessage.includes("User rejected") || errorMessage.includes("rejected")) {
       return {
         success: false,
@@ -290,9 +316,25 @@ export async function executeSwap(
       };
     }
     
+    // Check for insufficient funds
+    if (errorMessage.includes("insufficient") || errorMessage.includes("Insufficient")) {
+      return {
+        success: false,
+        error: "Insufficient funds for this swap.",
+      };
+    }
+    
+    // Check for slippage error
+    if (errorMessage.includes("slippage") || errorMessage.includes("Slippage")) {
+      return {
+        success: false,
+        error: "Price changed too much. Try increasing slippage or try again.",
+      };
+    }
+    
     return {
       success: false,
-      error: errorMessage,
+      error: errorMessage.length > 100 ? "Swap failed. Please try again." : errorMessage,
     };
   }
 }
