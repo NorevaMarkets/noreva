@@ -175,6 +175,11 @@ export async function executeSwap(
     const swapTransactionBuf = Buffer.from(swapTransaction, "base64");
     const transaction = VersionedTransaction.deserialize(swapTransactionBuf);
     
+    // Extract the blockhash from the transaction
+    const transactionBlockhash = transaction.message.recentBlockhash;
+    console.log("[Swap] Transaction blockhash:", transactionBlockhash);
+    console.log("[Swap] lastValidBlockHeight from Jupiter:", lastValidBlockHeight);
+    
     // Stage 1: Requesting signature
     updateStatus("signing");
     console.log("[Swap] Requesting wallet signature...");
@@ -188,9 +193,8 @@ export async function executeSwap(
     
     // Send the transaction with optimized settings
     const signature = await conn.sendTransaction(signedTransaction, {
-      skipPreflight: false,
-      maxRetries: 2,
-      preflightCommitment: "confirmed",
+      skipPreflight: true, // Skip preflight for faster submission
+      maxRetries: 3,
     });
     
     console.log("[Swap] Transaction sent:", signature);
@@ -198,43 +202,73 @@ export async function executeSwap(
     // Stage 3: Waiting for confirmation
     updateStatus("confirming");
     
-    // Get blockhash for confirmation (use lastValidBlockHeight if provided)
-    const { blockhash } = await conn.getLatestBlockhash("confirmed");
+    // Use the SAME blockhash from the transaction, not a new one!
+    // This is critical - the lastValidBlockHeight corresponds to this specific blockhash
+    const blockHeight = lastValidBlockHeight || (await conn.getBlockHeight()) + 150;
     
-    // Use the new confirmTransaction API with timeout
+    console.log("[Swap] Waiting for confirmation with blockHeight:", blockHeight);
+    
+    // Use the new confirmTransaction API
     const confirmationPromise = conn.confirmTransaction({
       signature,
-      blockhash,
-      lastValidBlockHeight: lastValidBlockHeight || (await conn.getBlockHeight()) + 150,
+      blockhash: transactionBlockhash, // Use the blockhash from the transaction!
+      lastValidBlockHeight: blockHeight,
     }, "confirmed");
     
-    // Add a manual timeout (60 seconds)
+    // Add a manual timeout (90 seconds - Solana can be slow during congestion)
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error("Transaction confirmation timeout")), 60000);
+      setTimeout(() => reject(new Error("Transaction confirmation timeout (90s)")), 90000);
     });
     
     console.log("[Swap] Waiting for confirmation...");
     
-    const confirmation = await Promise.race([confirmationPromise, timeoutPromise]);
-    
-    if (confirmation.value.err) {
-      console.error("[Swap] Transaction failed:", confirmation.value.err);
-      updateStatus("error");
+    try {
+      const confirmation = await Promise.race([confirmationPromise, timeoutPromise]);
+      
+      if (confirmation.value.err) {
+        console.error("[Swap] Transaction failed:", confirmation.value.err);
+        updateStatus("error");
+        return {
+          success: false,
+          error: "Transaction failed: " + JSON.stringify(confirmation.value.err),
+          signature,
+        };
+      }
+      
+      // Stage 4: Confirmed!
+      updateStatus("confirmed");
+      console.log("[Swap] Transaction confirmed!");
+      
       return {
-        success: false,
-        error: "Transaction failed: " + JSON.stringify(confirmation.value.err),
+        success: true,
         signature,
       };
+    } catch (confirmError) {
+      // If confirmation times out or fails, check if the transaction actually succeeded
+      console.log("[Swap] Confirmation error, checking transaction status...");
+      
+      try {
+        // Wait a moment and check the signature status
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        const status = await conn.getSignatureStatus(signature);
+        
+        if (status.value?.confirmationStatus === "confirmed" || status.value?.confirmationStatus === "finalized") {
+          if (!status.value.err) {
+            console.log("[Swap] Transaction actually confirmed!");
+            updateStatus("confirmed");
+            return {
+              success: true,
+              signature,
+            };
+          }
+        }
+      } catch (statusError) {
+        console.error("[Swap] Error checking status:", statusError);
+      }
+      
+      // Re-throw the original error
+      throw confirmError;
     }
-    
-    // Stage 4: Confirmed!
-    updateStatus("confirmed");
-    console.log("[Swap] Transaction confirmed!");
-    
-    return {
-      success: true,
-      signature,
-    };
   } catch (error) {
     console.error("[Swap] Execution error:", error);
     updateStatus("error");
@@ -245,6 +279,14 @@ export async function executeSwap(
       return {
         success: false,
         error: "Transaction rejected by user",
+      };
+    }
+    
+    // Check for block height exceeded - give helpful message
+    if (errorMessage.includes("block height exceeded") || errorMessage.includes("BlockheightExceeded")) {
+      return {
+        success: false,
+        error: "Transaction expired. Please try again - Solana network may be congested.",
       };
     }
     

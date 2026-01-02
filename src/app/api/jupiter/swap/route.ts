@@ -30,6 +30,7 @@ export async function POST(request: Request) {
     }
 
     // Build swap body based on API version
+    // Using HIGH priority and higher max lamports for faster confirmation
     const swapBody = useNewApi 
       ? {
           userPublicKey,
@@ -38,8 +39,8 @@ export async function POST(request: Request) {
           dynamicComputeUnitLimit: true,
           prioritizationFeeLamports: {
             priorityLevelWithMaxLamports: {
-              priorityLevel: "medium",
-              maxLamports: 1000000,
+              priorityLevel: "veryHigh", // Changed from medium to veryHigh
+              maxLamports: 5000000, // Increased from 1M to 5M (0.005 SOL max)
               global: false,
             },
           },
@@ -50,6 +51,7 @@ export async function POST(request: Request) {
           wrapAndUnwrapSol: true,
           dynamicComputeUnitLimit: true,
           prioritizationFeeLamports: "auto",
+          computeUnitPriceMicroLamports: 100000, // Add explicit priority fee for legacy API
         };
 
     // Get swap transaction from Jupiter
