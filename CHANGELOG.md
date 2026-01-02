@@ -5,6 +5,29 @@ All notable changes to Noreva will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-01-02
+
+### Added
+- **Trading Terminal** - New dedicated trading page at `/trade/[symbol]`
+  - **Stock Sidebar** - All stocks in collapsible left panel
+  - **Quick Search** - Filter stocks by symbol, name, or underlying
+  - **Favorites First** - Starred stocks appear at top of list
+  - **One-Click Switching** - Instantly switch between stocks
+  - **Collapse Mode** - Minimize sidebar to icon-only view
+  - Chart, Market Data, Fundamentals, News, Trading Panel all in one view
+- **Navigation Updated** - "Trade" link added to header and footer
+- **Redirects** - Old `/stock/[symbol]` URLs redirect to `/trade/[symbol]`
+
+### Changed
+- **Stock Clicks** - Homepage and Portfolio now link to `/trade/` instead of `/stock/`
+- **Active Nav State** - Header highlights "Trade" when on any trading page
+
+### Technical
+- New route: `src/app/trade/[symbol]/page.tsx`
+- `StockSidebarItem` component with favorite toggle
+- Redirect page at `src/app/stock/[symbol]/page.tsx`
+- Updated `NavLink` and `MobileNavLink` for trade route detection
+
 ## [0.9.1] - 2026-01-02
 
 ### Added

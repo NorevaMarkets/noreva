@@ -390,7 +390,7 @@ export default function HomePage() {
             <StockTable 
               stocks={filteredStocks} 
               searchQuery={searchQuery}
-              onStockClick={(stock) => router.push(`/stock/${stock.underlying}`)}
+              onStockClick={(stock) => router.push(`/trade/${stock.underlying}`)}
             />
             
             {/* Footer note */}

@@ -106,6 +106,7 @@ export function Header() {
             {/* Desktop Navigation - Center */}
             <nav className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
               <NavLink href="/">Stocks</NavLink>
+              <NavLink href="/trade/NVDA">Trade</NavLink>
               <NavLink href="/portfolio">Portfolio</NavLink>
               <NavLink href="/about">About</NavLink>
               <a 
@@ -251,6 +252,9 @@ export function Header() {
               <MobileNavLink href="/" onClick={() => setMobileMenuOpen(false)}>
                 Stocks
               </MobileNavLink>
+              <MobileNavLink href="/trade/NVDA" onClick={() => setMobileMenuOpen(false)}>
+                Trade
+              </MobileNavLink>
               <MobileNavLink href="/portfolio" onClick={() => setMobileMenuOpen(false)}>
                 Portfolio
               </MobileNavLink>
@@ -276,7 +280,11 @@ export function Header() {
 
 function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
   const pathname = usePathname();
-  const isActive = pathname === href || (href === "/" && pathname.startsWith("/stock"));
+  
+  // Determine active state
+  let isActive = pathname === href;
+  if (href === "/" && pathname.startsWith("/stock")) isActive = true;
+  if (href.startsWith("/trade") && pathname.startsWith("/trade")) isActive = true;
   
   return (
     <Link
@@ -312,7 +320,11 @@ function MobileNavLink({
   onClick?: () => void;
 }) {
   const pathname = usePathname();
-  const isActive = pathname === href || (href === "/" && pathname.startsWith("/stock"));
+  
+  // Determine active state
+  let isActive = pathname === href;
+  if (href === "/" && pathname.startsWith("/stock")) isActive = true;
+  if (href.startsWith("/trade") && pathname.startsWith("/trade")) isActive = true;
   
   return (
     <Link

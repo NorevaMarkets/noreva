@@ -250,7 +250,7 @@ function HoldingRow({ holding }: HoldingRowProps) {
 
   return (
     <Link
-      href={`/stock/${underlying}`}
+      href={`/trade/${underlying}`}
       className="flex items-center justify-between p-3 sm:p-4 hover:bg-[var(--background-tertiary)] transition-colors"
     >
       <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
