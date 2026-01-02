@@ -5,8 +5,9 @@
 
 export const siteConfig = {
   name: "Noreva",
-  description: "Track tokenized stocks on Solana. Compare prices, spreads, and trade 24/7.",
+  description: "Trade tokenized stocks on Solana. 24/7 access to NVIDIA, Tesla, Apple and more. Instant settlement. Zero borders.",
   url: "https://noreva.markets",
+  ogImage: "https://noreva.markets/banner.png",
   
   // API Endpoints
   api: {

@@ -25,8 +25,9 @@ export const metadata: Metadata = {
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
-  keywords: ["tokenized stocks", "solana", "crypto", "trading", "stocks", "ETF"],
+  keywords: ["tokenized stocks", "solana", "crypto", "trading", "stocks", "ETF", "NVIDIA", "Tesla", "Apple", "24/7 trading"],
   authors: [{ name: "Noreva" }],
+  creator: "Noreva",
   icons: {
     icon: [
       { url: "/favicon.png", type: "image/png" },
@@ -34,6 +35,7 @@ export const metadata: Metadata = {
     shortcut: "/favicon.png",
     apple: "/favicon.png",
   },
+  metadataBase: new URL(siteConfig.url),
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -41,11 +43,32 @@ export const metadata: Metadata = {
     title: siteConfig.name,
     description: siteConfig.description,
     siteName: siteConfig.name,
+    images: [
+      {
+        url: siteConfig.ogImage,
+        width: 1200,
+        height: 630,
+        alt: "Noreva - Trade tokenized stocks on Solana 24/7",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: siteConfig.name,
     description: siteConfig.description,
+    images: [siteConfig.ogImage],
+    creator: "@NorevaMarkets",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 };
 

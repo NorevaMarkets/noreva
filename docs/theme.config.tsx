@@ -47,15 +47,35 @@ const config: DocsThemeConfig = {
         <a href="https://noreva.markets" target="_blank" rel="noopener noreferrer" style={{ color: '#c4a84b', textDecoration: 'none' }}>
           Start Trading on noreva.markets
         </a>
-        <span>© 2025 Noreva. All rights reserved.</span>
+        <span>© 2026 Noreva. All rights reserved.</span>
       </div>
     ),
   },
   head: (
     <>
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <meta name="description" content="Learn how to trade tokenized stocks on Solana with Noreva. 24/7 access to NVIDIA, Tesla, Apple and more." />
+      <meta name="keywords" content="Noreva, tokenized stocks, Solana, crypto trading, documentation, guide" />
+      
+      {/* Open Graph */}
+      <meta property="og:type" content="website" />
+      <meta property="og:url" content="https://docs.noreva.markets" />
       <meta property="og:title" content="Noreva Documentation" />
-      <meta property="og:description" content="Learn how to trade tokenized stocks on Solana with Noreva" />
+      <meta property="og:description" content="Learn how to trade tokenized stocks on Solana with Noreva. 24/7 access to NVIDIA, Tesla, Apple and more." />
+      <meta property="og:image" content="https://noreva.markets/banner.png" />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
+      <meta property="og:image:alt" content="Noreva - Trade tokenized stocks on Solana 24/7" />
+      <meta property="og:site_name" content="Noreva Docs" />
+      
+      {/* Twitter Card */}
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:site" content="@NorevaMarkets" />
+      <meta name="twitter:creator" content="@NorevaMarkets" />
+      <meta name="twitter:title" content="Noreva Documentation" />
+      <meta name="twitter:description" content="Learn how to trade tokenized stocks on Solana with Noreva. 24/7 access to NVIDIA, Tesla, Apple and more." />
+      <meta name="twitter:image" content="https://noreva.markets/banner.png" />
+      
       <link rel="icon" type="image/png" href="/favicon.png" />
     </>
   ),
