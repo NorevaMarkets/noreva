@@ -1,12 +1,31 @@
 "use client";
 
-import { useEffect, useRef, memo } from "react";
+import { useEffect, useRef, memo, useState } from "react";
 
 interface TradingViewWidgetProps {
   symbol: string;
   theme?: "dark" | "light";
   autosize?: boolean;
   height?: number;
+}
+
+/**
+ * Hook to detect if we're on a mobile device
+ */
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  return isMobile;
 }
 
 function TradingViewWidgetComponent({
@@ -16,6 +35,7 @@ function TradingViewWidgetComponent({
   height = 400,
 }: TradingViewWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -26,7 +46,11 @@ function TradingViewWidgetComponent({
     // Create widget container
     const widgetContainer = document.createElement("div");
     widgetContainer.className = "tradingview-widget-container__widget";
-    widgetContainer.style.height = autosize ? "100%" : `${height}px`;
+    
+    // Mobile: Use fixed height, Desktop: Use autosize or specified height
+    const mobileHeight = 280;
+    const effectiveHeight = isMobile ? mobileHeight : (autosize ? "100%" : height);
+    widgetContainer.style.height = typeof effectiveHeight === "number" ? `${effectiveHeight}px` : effectiveHeight;
     widgetContainer.style.width = "100%";
     containerRef.current.appendChild(widgetContainer);
 
@@ -39,11 +63,13 @@ function TradingViewWidgetComponent({
     // Clean symbol for TradingView (remove b prefix, x suffix)
     const cleanSymbol = cleanStockSymbol(symbol);
 
+    // Mobile-optimized settings: hide toolbars for more chart space
     script.innerHTML = JSON.stringify({
-      autosize: autosize,
-      height: autosize ? "100%" : height,
-      symbol: cleanSymbol, // TradingView auto-resolves the exchange
-      interval: "D", // Default to daily, user can change in TradingView
+      autosize: isMobile ? false : autosize,
+      height: isMobile ? mobileHeight : (autosize ? "100%" : height),
+      width: "100%",
+      symbol: cleanSymbol,
+      interval: "D",
       timezone: "Etc/UTC",
       theme: theme,
       style: "1", // Candlestick
@@ -51,11 +77,14 @@ function TradingViewWidgetComponent({
       enable_publishing: false,
       backgroundColor: theme === "dark" ? "rgba(20, 20, 24, 1)" : "rgba(255, 255, 255, 1)",
       gridColor: theme === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.05)",
-      hide_top_toolbar: false,
-      hide_legend: false,
+      // Mobile: hide toolbars for cleaner look
+      hide_top_toolbar: isMobile,
+      hide_side_toolbar: isMobile,
+      hide_legend: isMobile,
       save_image: false,
       calendar: false,
-      hide_volume: false,
+      hide_volume: isMobile, // Hide volume on mobile for cleaner look
+      allow_symbol_change: !isMobile, // Disable symbol change on mobile
       support_host: "https://www.tradingview.com",
     });
 
@@ -66,13 +95,18 @@ function TradingViewWidgetComponent({
         containerRef.current.innerHTML = "";
       }
     };
-  }, [symbol, theme, autosize, height]);
+  }, [symbol, theme, autosize, height, isMobile]);
+
+  // Mobile: fixed height, Desktop: flexible
+  const containerStyle = isMobile 
+    ? { height: "280px" } 
+    : { minHeight: autosize ? "100%" : height };
 
   return (
     <div 
       ref={containerRef} 
       className="tradingview-widget-container h-full w-full"
-      style={{ minHeight: autosize ? "100%" : height }}
+      style={containerStyle}
     />
   );
 }

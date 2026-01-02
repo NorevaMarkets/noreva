@@ -156,8 +156,8 @@ export default function StockDetailPage() {
             </div>
           </div>
 
-          {/* Chart Area */}
-          <div className="flex-1 p-2 sm:p-4 bg-[var(--background)] min-h-[300px] sm:min-h-[400px] lg:min-h-0">
+          {/* Chart Area - Responsive height */}
+          <div className="flex-1 p-2 sm:p-4 bg-[var(--background)] min-h-[280px] sm:min-h-[350px] lg:min-h-0 max-h-[300px] sm:max-h-none">
             <TradingChart
               symbol={underlying}
               fullscreen
