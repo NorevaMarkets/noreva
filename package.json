@@ -1,6 +1,6 @@
 {
   "name": "noreva",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -23,6 +23,7 @@
     "next": "16.1.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
     "tweetnacl": "^1.0.3"
   },

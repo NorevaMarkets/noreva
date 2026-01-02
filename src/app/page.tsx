@@ -6,6 +6,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { StockTable } from "@/components/features/stock-list";
 import { SearchInput } from "@/components/ui/search-input";
+import { StockTableSkeleton } from "@/components/ui/skeleton";
 import { useRealStocks } from "@/hooks";
 import { formatNumber } from "@/lib/utils/format";
 
@@ -387,11 +388,15 @@ export default function HomePage() {
         {/* Stock table - only show if we have data */}
         {!isError && (
           <>
-            <StockTable 
-              stocks={filteredStocks} 
-              searchQuery={searchQuery}
-              onStockClick={(stock) => router.push(`/trade/${stock.underlying}`)}
-            />
+            {isLoading && stocks.length === 0 ? (
+              <StockTableSkeleton rows={8} />
+            ) : (
+              <StockTable 
+                stocks={filteredStocks} 
+                searchQuery={searchQuery}
+                onStockClick={(stock) => router.push(`/trade/${stock.underlying}`)}
+              />
+            )}
             
             {/* Footer note */}
             <p className="text-[10px] text-[var(--foreground-subtle)] text-center mt-8 opacity-60">

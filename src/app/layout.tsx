@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/footer";
 import { WalletProvider } from "@/components/providers/wallet-provider";
 import { siteConfig } from "@/config/site";
 import { PageTransitionProvider } from "@/components/providers/page-transition-provider";
+import { Toaster } from "sonner";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -92,6 +93,23 @@ export default function RootLayout({
             </main>
             <Footer />
           </div>
+          <Toaster 
+            theme="dark"
+            position="top-right"
+            toastOptions={{
+              style: {
+                background: 'var(--background-secondary)',
+                border: '1px solid var(--border)',
+                color: 'var(--foreground)',
+              },
+              classNames: {
+                success: 'border-[var(--positive)]/30',
+                error: 'border-[var(--negative)]/30',
+                warning: 'border-[var(--accent)]/30',
+              },
+            }}
+            richColors
+          />
         </WalletProvider>
       </body>
     </html>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { StockWithPrice } from "@/types";
 import { 
@@ -279,7 +280,7 @@ export function TradingPanel({ stock }: TradingPanelProps) {
         setStatus("success");
         setTxSignature(result.signature);
         
-        // Record trade in database (don't await to avoid blocking UI)
+        // Calculate amounts for display and recording
         const tokenAmount = mode === "buy" 
           ? parseFloat(freshQuote.outAmount) / Math.pow(10, stockDecimals)
           : parsedAmount;
@@ -287,20 +288,28 @@ export function TradingPanel({ stock }: TradingPanelProps) {
           ? (paymentToken === "USDC" ? parsedAmount : (outputAmount || 0))
           : (paymentToken === "USDC" ? (outputAmount || 0) : parsedAmount * stock.price.tokenPrice);
         
+        // Show success toast
+        toast.success(
+          mode === "buy" ? `Bought ${tokenAmount.toFixed(4)} ${stock.underlying}` : `Sold ${tokenAmount.toFixed(4)} ${stock.underlying}`,
+          {
+            description: mode === "buy" 
+              ? `Paid ${parsedAmount.toFixed(2)} ${paymentToken}` 
+              : `Received ${(outputAmount || 0).toFixed(2)} ${paymentToken}`,
+            action: {
+              label: "View on Solscan",
+              onClick: () => window.open(`https://solscan.io/tx/${result.signature}`, "_blank"),
+            },
+          }
+        );
+        
         // Record trade in background (non-blocking)
-        // If not authenticated, try to authenticate first (silent - won't block UI)
         const doRecordTrade = async () => {
-          // If not authenticated, try to authenticate first
           if (!isAuthenticated) {
-            console.log("[Trade] Not authenticated, attempting auth before recording...");
             const authSuccess = await authenticate();
-            if (!authSuccess) {
-              console.warn("[Trade] Auth failed, trade not recorded (can still see it on Solscan)");
-              return;
-            }
+            if (!authSuccess) return;
           }
           
-          const tradeRecord = await recordTrade({
+          await recordTrade({
             type: mode,
             symbol: stock.symbol,
             stockName: stock.name,
@@ -309,31 +318,31 @@ export function TradingPanel({ stock }: TradingPanelProps) {
             pricePerToken: stock.price.tokenPrice,
             txSignature: result.signature,
           });
-          
-          if (tradeRecord) {
-            console.log("[Trade] Recorded successfully:", tradeRecord.id);
-          } else {
-            console.warn("[Trade] Failed to record trade");
-          }
         };
         
-        doRecordTrade().catch((tradeErr) => {
-          console.error("[Trade] Error recording trade:", tradeErr);
-        });
+        doRecordTrade().catch(() => {});
         
         setAmount("");
         setQuote(null);
         refetchBalances();
-        fetchStockBalance(); // Refresh stock balance too
+        fetchStockBalance();
       } else {
-        skipFetchRef.current = true; // Prevent fetching during error display
+        skipFetchRef.current = true;
         setStatus("error");
-        setError(result.error || "Swap failed");
+        const errorMsg = result.error || "Swap failed";
+        setError(errorMsg);
+        toast.error("Swap failed", {
+          description: errorMsg,
+        });
       }
     } catch (err) {
-      skipFetchRef.current = true; // Prevent fetching during error display
+      skipFetchRef.current = true;
       setStatus("error");
-      setError(err instanceof Error ? err.message : "Swap failed");
+      const errorMsg = err instanceof Error ? err.message : "Swap failed";
+      setError(errorMsg);
+      toast.error("Transaction failed", {
+        description: errorMsg,
+      });
     }
   };
 

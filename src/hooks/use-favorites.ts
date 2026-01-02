@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { toast } from "sonner";
 
 interface UseFavoritesReturn {
   favorites: string[];
@@ -65,7 +66,9 @@ export function useFavorites(): UseFavoritesReturn {
   const toggleFavorite = useCallback(
     async (symbol: string): Promise<boolean> => {
       if (!walletAddress) {
-        console.log("[Favorites] No wallet connected");
+        toast.error("Connect wallet", {
+          description: "Please connect your wallet to use favorites",
+        });
         return false;
       }
 
@@ -93,8 +96,13 @@ export function useFavorites(): UseFavoritesReturn {
           if (!data.success) {
             // Revert on failure
             setFavorites((prev) => [symbol, ...prev]);
+            toast.error("Failed to remove favorite");
             return false;
           }
+          
+          toast("Removed from favorites", {
+            description: symbol,
+          });
         } else {
           // Add favorite
           const response = await fetch("/api/favorites", {
@@ -111,8 +119,13 @@ export function useFavorites(): UseFavoritesReturn {
           if (!data.success) {
             // Revert on failure
             setFavorites((prev) => prev.filter((s) => s !== symbol));
+            toast.error("Failed to add favorite");
             return false;
           }
+          
+          toast.success("Added to favorites", {
+            description: symbol,
+          });
         }
 
         return true;
@@ -124,6 +137,7 @@ export function useFavorites(): UseFavoritesReturn {
         } else {
           setFavorites((prev) => prev.filter((s) => s !== symbol));
         }
+        toast.error("Something went wrong");
         return false;
       }
     },

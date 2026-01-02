@@ -10,6 +10,12 @@ import { TradingPanel } from "@/components/features/stock-detail/trading-panel";
 import { FundamentalsPanel } from "@/components/features/stock-detail/fundamentals-panel";
 import { NewsFeed } from "@/components/features/stock-detail/news-feed";
 import { useRealStocks, useFavorites } from "@/hooks";
+import { 
+  SidebarSkeleton, 
+  PriceHeaderSkeleton, 
+  ChartSkeleton, 
+  TradingPanelSkeleton 
+} from "@/components/ui/skeleton";
 import type { StockWithPrice } from "@/types";
 
 // Tab types for the right panel
@@ -64,13 +70,47 @@ export default function TradePage() {
     });
   }, [stocks, searchQuery, favorites]);
 
-  // Show loading state
+  // Show skeleton loading state
   if (isLoading && !stock) {
     return (
-      <div className="h-[calc(100vh-64px)] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent)] mx-auto mb-4"></div>
-          <p className="text-[var(--foreground-muted)]">Loading trading terminal...</p>
+      <div className="h-[calc(100vh-64px)] flex overflow-hidden">
+        {/* Sidebar Skeleton */}
+        <div className="w-64 bg-[var(--background-secondary)] border-r border-[var(--border)]">
+          <div className="p-2 border-b border-[var(--border)]">
+            <div className="h-4 w-16 bg-[var(--background-tertiary)] rounded animate-pulse" />
+          </div>
+          <SidebarSkeleton items={12} />
+        </div>
+        
+        {/* Main Content Skeleton */}
+        <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
+          {/* Chart Section */}
+          <div className="flex-1 flex flex-col min-w-0 min-h-0">
+            <PriceHeaderSkeleton />
+            <div className="flex-1 p-3 bg-[var(--background)]">
+              <ChartSkeleton />
+            </div>
+          </div>
+          
+          {/* Right Panel Skeleton */}
+          <div className="w-full lg:w-[320px] flex flex-col bg-[var(--background-card)] border-t lg:border-t-0 lg:border-l border-[var(--border)]">
+            {/* Tab skeleton */}
+            <div className="flex gap-2 p-2 border-b border-[var(--border)]">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex-1 h-8 bg-[var(--background-tertiary)] rounded animate-pulse" />
+              ))}
+            </div>
+            <div className="flex-1 p-3">
+              <div className="space-y-3">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-12 bg-[var(--background-tertiary)] rounded animate-pulse" />
+                ))}
+              </div>
+            </div>
+            <div className="border-t border-[var(--border)]">
+              <TradingPanelSkeleton />
+            </div>
+          </div>
         </div>
       </div>
     );

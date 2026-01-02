@@ -5,6 +5,37 @@ All notable changes to Noreva will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2026-01-02
+
+### Added
+- **Toast Notifications** - Real-time feedback using Sonner library
+  - Swap success/failure notifications with Solscan link
+  - Wallet connect/disconnect notifications
+  - Favorite add/remove notifications
+  - Beautiful dark theme styled toasts
+- **Skeleton Loading States** - Improved loading experience
+  - `StockTableSkeleton` - Full table with header and rows
+  - `SidebarSkeleton` - Stock sidebar loading state
+  - `SidebarStockSkeleton` - Individual sidebar item skeleton
+  - `TradingPanelSkeleton` - Complete trading panel placeholder
+  - `ChartSkeleton` - Fake candlestick chart loading animation
+  - `NewsFeedSkeleton` - News items loading state
+  - `FundamentalsSkeleton` - Fundamentals panel skeleton
+  - `PriceHeaderSkeleton` - Price header loading state
+
+### Changed
+- **Trading Terminal** - Now shows full skeleton UI while loading
+- **Homepage** - Stock table shows skeleton while fetching data
+- **User Feedback** - Replaced console.log with toast notifications
+
+### Technical
+- Added `sonner` package for toast notifications
+- `Toaster` component in root layout with dark theme
+- Enhanced `skeleton.tsx` with 8 new skeleton components
+- Updated `trading-panel.tsx` with toast imports and calls
+- Updated `wallet-button.tsx` with connect/disconnect toasts
+- Updated `use-favorites.ts` with favorite toggle toasts
+
 ## [0.10.0] - 2026-01-02
 
 ### Added

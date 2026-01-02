@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { toast } from "sonner";
 import { useWalletAuth } from "@/hooks/use-wallet-auth";
 import { truncateAddress } from "@/lib/utils/format";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,23 @@ export function WalletButton() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Track previous connected state for toast notifications
+  const prevConnectedRef = useRef(connected);
+  
+  // Show toast when wallet connects/disconnects
+  useEffect(() => {
+    if (connected && !prevConnectedRef.current && publicKey) {
+      toast.success("Wallet connected", {
+        description: truncateAddress(publicKey.toBase58(), 6),
+      });
+    } else if (!connected && prevConnectedRef.current) {
+      toast("Wallet disconnected", {
+        description: "You have been logged out",
+      });
+    }
+    prevConnectedRef.current = connected;
+  }, [connected, publicKey]);
 
   // Auto-authenticate when wallet connects
   useEffect(() => {
