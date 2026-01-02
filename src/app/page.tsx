@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { StockTable } from "@/components/features/stock-list";
 import { SearchInput } from "@/components/ui/search-input";
 import { useRealStocks } from "@/hooks";
@@ -75,40 +76,80 @@ export default function HomePage() {
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 sm:py-16 lg:py-20">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 sm:gap-8">
             {/* Left: Text content */}
-            <div className="max-w-xl">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
+            <motion.div 
+              className="max-w-xl"
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1.0] }}
+            >
+              <motion.h1 
+                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              >
                 <span className="text-[var(--foreground)]">Stocks on-chain.</span>
                 <br />
-                <span className="text-gradient">No closing bell.</span>
-              </h1>
+                <motion.span 
+                  className="text-gradient"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                >
+                  No closing bell.
+                </motion.span>
+              </motion.h1>
               
-              <p className="mt-4 sm:mt-6 text-base sm:text-lg text-[var(--foreground-muted)] leading-relaxed">
+              <motion.p 
+                className="mt-4 sm:mt-6 text-base sm:text-lg text-[var(--foreground-muted)] leading-relaxed"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
                 Buy and sell NVIDIA, Tesla, Apple and more directly from your wallet. 
                 Instant settlement. Zero borders. Always open.
-              </p>
+              </motion.p>
 
               {/* CTA Buttons */}
-              <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3">
-                <button 
+              <motion.div 
+                className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+              >
+                <motion.button 
                   onClick={() => document.getElementById('stocks')?.scrollIntoView({ behavior: 'smooth' })}
                   className="w-full sm:w-auto px-6 py-3 bg-[var(--accent)] text-[var(--background)] font-semibold rounded-lg hover:bg-[var(--accent-light)] transition-all shadow-lg shadow-[var(--accent)]/20 text-center"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   Explore Markets
-                </button>
-                <a 
+                </motion.button>
+                <motion.a 
                   href="https://docs.noreva.markets"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full sm:w-auto px-6 py-3 border border-[var(--border)] text-[var(--foreground)] font-medium rounded-lg hover:bg-[var(--background-tertiary)] hover:border-[var(--border-hover)] transition-all text-center"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   How it works
-                </a>
-              </div>
-            </div>
+                </motion.a>
+              </motion.div>
+            </motion.div>
 
             {/* Right: Stats Panel */}
-            <div className="w-full lg:w-[400px]">
-              <div className="relative p-4 sm:p-6 bg-[var(--background-card)] border border-[var(--border)] rounded-xl sm:rounded-2xl shadow-xl">
+            <motion.div 
+              className="w-full lg:w-[400px]"
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.2, ease: [0.25, 0.1, 0.25, 1.0] }}
+            >
+              <motion.div 
+                className="relative p-4 sm:p-6 bg-[var(--background-card)] border border-[var(--border)] rounded-xl sm:rounded-2xl shadow-xl"
+                whileHover={{ scale: 1.01 }}
+                transition={{ duration: 0.2 }}
+              >
                 {/* Glow effect */}
                 <div className="absolute -inset-px bg-gradient-to-b from-[var(--accent)]/20 to-transparent rounded-2xl opacity-50 pointer-events-none" />
                 
@@ -165,51 +206,46 @@ export default function HomePage() {
 
                   {/* Stats grid */}
                   <div className="grid grid-cols-2 gap-2 sm:gap-4">
-                    <div className="p-2.5 sm:p-3 bg-[var(--background-tertiary)] rounded-lg sm:rounded-xl">
-                      <div className="text-[9px] sm:text-[10px] uppercase tracking-wider text-[var(--foreground-subtle)] mb-0.5 sm:mb-1">
-                        24h Volume
-                      </div>
-                      <div className="text-base sm:text-xl font-bold font-mono tabular-nums text-[var(--foreground)]">
-                        ${formatNumber(totalVolume)}
-                      </div>
-                    </div>
-                    <div className="p-2.5 sm:p-3 bg-[var(--background-tertiary)] rounded-lg sm:rounded-xl">
-                      <div className="text-[9px] sm:text-[10px] uppercase tracking-wider text-[var(--foreground-subtle)] mb-0.5 sm:mb-1">
-                        Market Cap
-                      </div>
-                      <div className="text-base sm:text-xl font-bold font-mono tabular-nums text-[var(--foreground)]">
-                        ${formatNumber(totalMarketCap)}
-                      </div>
-                    </div>
-                    <div className="p-2.5 sm:p-3 bg-[var(--background-tertiary)] rounded-lg sm:rounded-xl">
-                      <div className="text-[9px] sm:text-[10px] uppercase tracking-wider text-[var(--foreground-subtle)] mb-0.5 sm:mb-1">
-                        Stocks
-                      </div>
-                      <div className="text-base sm:text-xl font-bold font-mono tabular-nums text-[var(--foreground)]">
-                        {stocks.length}
-                      </div>
-                    </div>
-                    <div className="p-2.5 sm:p-3 bg-[var(--background-tertiary)] rounded-lg sm:rounded-xl">
-                      <div className="text-[9px] sm:text-[10px] uppercase tracking-wider text-[var(--foreground-subtle)] mb-0.5 sm:mb-1">
-                        Avg Spread
-                      </div>
-                      <div className="text-base sm:text-xl font-bold font-mono tabular-nums text-[var(--positive)]">
-                        {avgSpread.toFixed(2)}%
-                      </div>
-                    </div>
+                    {[
+                      { label: "24h Volume", value: `$${formatNumber(totalVolume)}`, delay: 0.4 },
+                      { label: "Market Cap", value: `$${formatNumber(totalMarketCap)}`, delay: 0.45 },
+                      { label: "Stocks", value: stocks.length.toString(), delay: 0.5 },
+                      { label: "Avg Spread", value: `${avgSpread.toFixed(2)}%`, positive: true, delay: 0.55 },
+                    ].map((stat) => (
+                      <motion.div 
+                        key={stat.label}
+                        className="p-2.5 sm:p-3 bg-[var(--background-tertiary)] rounded-lg sm:rounded-xl"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3, delay: stat.delay }}
+                        whileHover={{ scale: 1.02 }}
+                      >
+                        <div className="text-[9px] sm:text-[10px] uppercase tracking-wider text-[var(--foreground-subtle)] mb-0.5 sm:mb-1">
+                          {stat.label}
+                        </div>
+                        <div className={`text-base sm:text-xl font-bold font-mono tabular-nums ${stat.positive ? "text-[var(--positive)]" : "text-[var(--foreground)]"}`}>
+                          {stat.value}
+                        </div>
+                      </motion.div>
+                    ))}
                   </div>
 
                   {/* Live indicator */}
-                  <div className="mt-4 flex items-center justify-center gap-2 text-xs text-[var(--foreground-subtle)]">
+                  <motion.div 
+                    className="mt-4 flex items-center justify-center gap-2 text-xs text-[var(--foreground-subtle)]"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.6, duration: 0.3 }}
+                  >
                     <span className="relative flex h-1.5 w-1.5">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--positive)] opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[var(--positive)]"></span>
                     </span>
                     Markets: Open 24/7
-                  </div>
+                  </motion.div>
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           </div>
         </div>
 
@@ -219,16 +255,27 @@ export default function HomePage() {
 
       {/* Stock List Section */}
       <section id="stocks" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div className="flex flex-col gap-4 mb-6 sm:mb-8">
+        <motion.div 
+          className="flex flex-col gap-4 mb-6 sm:mb-8"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ duration: 0.4 }}
+        >
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-            <div>
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+            >
               <h2 className="text-xl sm:text-2xl font-bold text-[var(--foreground)]">
                 Tokenized Stocks
               </h2>
               <p className="text-xs sm:text-sm text-[var(--foreground-muted)] mt-1">
                 Select a stock to view charts and trade
               </p>
-            </div>
+            </motion.div>
             
             {/* Filter pills - visible on all screens */}
             <div className="flex items-center p-1 bg-[var(--background-tertiary)] rounded-lg shrink-0 self-start sm:self-auto">
@@ -254,13 +301,19 @@ export default function HomePage() {
           </div>
           
           {/* Search - full width on mobile */}
-          <div className="w-full sm:w-64">
+          <motion.div 
+            className="w-full sm:w-64"
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+          >
             <SearchInput 
               placeholder="Search stocks..."
               onSearch={setSearchQuery}
             />
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* API Key Configuration Error */}
         {isError && errorDetails && (

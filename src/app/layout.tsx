@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { WalletProvider } from "@/components/providers/wallet-provider";
 import { siteConfig } from "@/config/site";
+import { PageTransitionProvider } from "@/components/providers/page-transition-provider";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -62,7 +63,9 @@ export default function RootLayout({
           <div className="relative min-h-screen flex flex-col">
             <Header />
             <main className="flex-1">
-              {children}
+              <PageTransitionProvider>
+                {children}
+              </PageTransitionProvider>
             </main>
             <Footer />
           </div>

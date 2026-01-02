@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { formatUsd, formatNumber } from "@/lib/utils/format";
 import { Badge } from "@/components/ui/badge";
@@ -12,9 +13,10 @@ interface StockRowProps {
   isFavorite?: boolean;
   onToggleFavorite?: (symbol: string) => void;
   canFavorite?: boolean; // Whether user is authenticated
+  index?: number; // For stagger animation
 }
 
-export function StockRow({ stock, onClick, isFavorite = false, onToggleFavorite, canFavorite = false }: StockRowProps) {
+export function StockRow({ stock, onClick, isFavorite = false, onToggleFavorite, canFavorite = false, index = 0 }: StockRowProps) {
   const { symbol, name, underlying, price, provider, logoUrl } = stock;
   
   const isPositive = price.spread >= 0;
@@ -25,7 +27,20 @@ export function StockRow({ stock, onClick, isFavorite = false, onToggleFavorite,
   };
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ 
+        duration: 0.3,
+        delay: index * 0.03, // Stagger effect
+        ease: [0.25, 0.1, 0.25, 1.0] // Custom easing for smooth feel
+      }}
+      whileHover={{ 
+        scale: 1.005,
+        transition: { duration: 0.15 }
+      }}
+      whileTap={{ scale: 0.995 }}
       onClick={onClick}
       className={cn(
         "group relative px-3 sm:px-4 py-3 sm:py-3.5",
@@ -187,13 +202,17 @@ export function StockRow({ stock, onClick, isFavorite = false, onToggleFavorite,
         </div>
 
         {/* Arrow indicator on hover */}
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <motion.div 
+          className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100"
+          initial={{ x: -5 }}
+          whileHover={{ x: 0 }}
+        >
           <svg className="w-4 h-4 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 

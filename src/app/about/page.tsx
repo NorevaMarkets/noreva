@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 export default function AboutPage() {
   return (
@@ -15,18 +16,45 @@ export default function AboutPage() {
         <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[var(--background)] to-transparent" />
         
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-16 lg:py-28">
-          <div className="max-w-3xl">
-            <p className="text-[var(--accent)] font-medium tracking-wide uppercase text-sm mb-4">
+          <motion.div 
+            className="max-w-3xl"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1.0] }}
+          >
+            <motion.p 
+              className="text-[var(--accent)] font-medium tracking-wide uppercase text-sm mb-4"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+            >
               The Future of Stock Trading
-            </p>
-            <h1 className="text-5xl lg:text-7xl font-bold text-[var(--foreground)] mb-8 leading-tight">
+            </motion.p>
+            <motion.h1 
+              className="text-5xl lg:text-7xl font-bold text-[var(--foreground)] mb-8 leading-tight"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
               Trade Stocks.<br />
-              <span className="text-[var(--accent)]">Without Limits.</span>
-            </h1>
-            <p className="text-xl text-[var(--foreground-muted)] max-w-xl">
+              <motion.span 
+                className="text-[var(--accent)]"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4, delay: 0.4 }}
+              >
+                Without Limits.
+              </motion.span>
+            </motion.h1>
+            <motion.p 
+              className="text-xl text-[var(--foreground-muted)] max-w-xl"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.3 }}
+            >
               Traditional markets close at 4 PM. Ours don't.
-            </p>
-          </div>
+            </motion.p>
+          </motion.div>
         </div>
       </section>
 
@@ -34,7 +62,13 @@ export default function AboutPage() {
       <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-20">
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-16">
           {/* The Old Way */}
-          <div className="relative p-8 rounded-2xl bg-[var(--background-secondary)] border border-[var(--border)]">
+          <motion.div 
+            className="relative p-8 rounded-2xl bg-[var(--background-secondary)] border border-[var(--border)]"
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
             <div className="absolute -top-4 left-8 px-4 py-1 bg-[var(--background)] border border-[var(--border)] rounded-full">
               <span className="text-xs font-medium text-[var(--foreground-muted)] uppercase tracking-wider">Traditional Finance</span>
             </div>
@@ -60,10 +94,16 @@ export default function AboutPage() {
                 <span>Brokers control your assets</span>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* The New Way */}
-          <div className="relative p-8 rounded-2xl bg-gradient-to-br from-[var(--accent)]/10 to-transparent border border-[var(--accent)]/30">
+          <motion.div 
+            className="relative p-8 rounded-2xl bg-gradient-to-br from-[var(--accent)]/10 to-transparent border border-[var(--accent)]/30"
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
             <div className="absolute -top-4 left-8 px-4 py-1 bg-[var(--accent)] rounded-full">
               <span className="text-xs font-medium text-[var(--background)] uppercase tracking-wider">Noreva</span>
             </div>
@@ -89,7 +129,7 @@ export default function AboutPage() {
                 <span>Your keys, your assets</span>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 

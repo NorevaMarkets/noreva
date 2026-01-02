@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { motion } from "framer-motion";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatUsd, truncateAddress } from "@/lib/utils/format";
 import { usePortfolioHoldings, useTradeHistory } from "@/hooks";
 import { useWalletBalance } from "@/hooks";
+import { TradeDashboard } from "@/components/features/trade-dashboard";
 import Link from "next/link";
 import type { TradeDisplay } from "@/types/trade";
 import { cn } from "@/lib/utils";
@@ -158,12 +160,30 @@ export function PortfolioContent() {
         )}
       </Card>
 
-      {/* Trade History */}
+      {/* Trade Statistics Dashboard */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+      >
+        <div className="mb-4">
+          <h3 className="font-semibold text-lg text-[var(--foreground)] flex items-center gap-2">
+            <HistoryIcon className="w-5 h-5 text-[var(--accent)]" />
+            Trading Dashboard
+          </h3>
+          <p className="text-sm text-[var(--foreground-muted)] mt-1">
+            Track your performance, P&L, and trading activity
+          </p>
+        </div>
+        <TradeDashboard trades={trades} isLoading={tradesLoading} />
+      </motion.div>
+
+      {/* Recent Trades List */}
       <Card padding="none">
         <div className="px-3 sm:px-4 py-2.5 sm:py-3 border-b border-[var(--border)] flex items-center justify-between">
           <h3 className="font-medium text-sm sm:text-base text-[var(--foreground)] flex items-center gap-2">
-            <HistoryIcon className="w-4 h-4 text-[var(--foreground-muted)]" />
-            Trade History
+            <ClockIcon className="w-4 h-4 text-[var(--foreground-muted)]" />
+            Recent Trades
           </h3>
           {tradesLoading && (
             <span className="text-[10px] sm:text-xs text-[var(--foreground-muted)] animate-pulse">
@@ -180,9 +200,24 @@ export function PortfolioContent() {
           </div>
         ) : (
           <div className="divide-y divide-[var(--border)]">
-            {trades.map((trade) => (
-              <TradeRow key={trade.id} trade={trade} />
+            {trades.slice(0, 5).map((trade, index) => (
+              <motion.div
+                key={trade.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
+              >
+                <TradeRow trade={trade} />
+              </motion.div>
             ))}
+          </div>
+        )}
+        
+        {trades.length > 5 && (
+          <div className="p-3 border-t border-[var(--border)] text-center">
+            <span className="text-xs text-[var(--foreground-muted)]">
+              Showing 5 of {trades.length} trades • View all in Dashboard above
+            </span>
           </div>
         )}
       </Card>
@@ -353,6 +388,14 @@ function WalletIcon({ className }: { className?: string }) {
 }
 
 function HistoryIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    </svg>
+  );
+}
+
+function ClockIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />

@@ -5,3 +5,5 @@ export * from "./badge";
 export * from "./price-change";
 export * from "./skeleton";
 export * from "./wallet-button";
+export * from "./page-transition";
+export * from "./animated-section";
