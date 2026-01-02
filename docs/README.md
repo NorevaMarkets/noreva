@@ -13,8 +13,15 @@ Official documentation for [Noreva](https://noreva.markets) - Trade tokenized st
 | **Introduction** | Overview of Noreva and supported tokens |
 | **Getting Started** | Wallet setup and first steps |
 | **Trading** | How spreads work and executing swaps |
-| **Portfolio** | Managing your tokenized stock holdings |
+| **Portfolio** | Managing holdings and Trading Dashboard |
+| **Account** | Profile settings and authentication |
 | **FAQ** | Common questions answered |
+
+## Latest Features (v0.9.0)
+
+- **Trading Dashboard** - PnL tracking, performance charts, trade calendar
+- **Smooth Animations** - Page transitions and stagger effects with Framer Motion
+- **Stock Breakdown** - Average buy/sell prices per stock
 
 ## Tech Stack
 
@@ -22,6 +29,15 @@ Official documentation for [Noreva](https://noreva.markets) - Trade tokenized st
 - [Nextra 2](https://nextra.site/) - Documentation framework
 - [MDX](https://mdxjs.com/) - Markdown with JSX
 - Custom dark theme matching noreva.markets
+
+## Main App Tech Stack
+
+- Next.js 16 with App Router & Turbopack
+- Tailwind CSS 4
+- Framer Motion for animations
+- Solana Web3.js + Wallet Adapter
+- TradingView Charts
+- Supabase (PostgreSQL)
 
 ## Development
 

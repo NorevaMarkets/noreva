@@ -16,6 +16,13 @@ Noreva is a web application for tracking and trading tokenized stocks on the Sol
 - **Trade History** - All your trades saved to database and viewable in portfolio
 - **Stock Favorites** - Mark favorite stocks with a star, shown at top of list
 
+### Trading Dashboard (NEW!)
+- **PnL Overview** - Track your realized profit and loss with visual indicators
+- **Performance Charts** - View cumulative P&L and monthly volume charts
+- **Trade Calendar** - Interactive calendar showing your trading activity
+- **Stock Breakdown** - Per-stock statistics with average buy/sell prices
+- **Analytics Tabs** - Switch between Overview, Stocks, and Calendar views
+
 ### Market Data
 - **Stock Fundamentals** - P/E Ratio, P/B, dividends, 52-week range, and more (via Finnhub)
 - **News Feed** - Latest news for each stock from Finnhub and Yahoo Finance
@@ -33,6 +40,8 @@ Noreva is a web application for tracking and trading tokenized stocks on the Sol
 - **Fully Responsive** - Optimized for desktop, tablet, and mobile
 - **Mobile Charts** - TradingView charts adapt to smaller screens
 - **Local Stock Logos** - Fast loading with locally cached logos
+- **Smooth Animations** - Page transitions and micro-interactions with Framer Motion
+- **Stagger Effects** - Stock list items animate in sequence for polished feel
 
 ## Getting Started
 
@@ -93,6 +102,7 @@ See `.env.example` for a complete template.
 - **Blockchain**: Solana Web3.js
 - **Wallet**: Solana Wallet Adapter (Phantom, Solflare)
 - **Charts**: TradingView Lightweight Charts
+- **Animations**: [Framer Motion](https://www.framer.com/motion/)
 - **Authentication**: Wallet Signature Verification (nacl/tweetnacl)
 - **Fonts**: Space Grotesk + JetBrains Mono
 
@@ -115,15 +125,17 @@ src/
 ├── components/
 │   ├── features/          # Feature-specific components
 │   │   ├── stock-detail/  # Charts, fundamentals, news, trading
-│   │   ├── stock-list/    # Stock table and rows
+│   │   ├── stock-list/    # Stock table and rows (with stagger animations)
+│   │   ├── trade-dashboard/ # PnL, charts, calendar, stock breakdown
 │   │   └── portfolio/     # Holdings, trade history
 │   ├── layout/            # Layout components (header, footer)
-│   ├── providers/         # React context providers
-│   └── ui/                # Reusable UI components
+│   ├── providers/         # React context providers (wallet, page transitions)
+│   └── ui/                # Reusable UI components (animations, cards, etc.)
 ├── hooks/                 # Custom React hooks
 │   ├── use-wallet-auth    # Wallet signature authentication
 │   ├── use-user           # User profile management
 │   ├── use-trade-history  # Trade history
+│   ├── use-trade-statistics # PnL calculations, averages, calendar data
 │   ├── use-stock-*        # Stock data hooks
 │   └── ...
 ├── lib/

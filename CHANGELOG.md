@@ -5,6 +5,35 @@ All notable changes to Noreva will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-01-02
+
+### Added
+- **Trading Dashboard** - Comprehensive analytics for your trades
+  - **PnL Overview** - Realized profit/loss with visual indicators
+  - **Performance Charts** - Cumulative P&L (30 days) and monthly volume
+  - **Trade Calendar** - Visual calendar showing trade activity per day
+  - **Stock Breakdown** - Per-stock statistics with average buy/sell prices
+  - Tabs for Overview, Stocks, and Calendar views
+- **Micro-Animations** - Smooth UI transitions powered by Framer Motion
+  - **Page Transitions** - Fade/slide animations between routes
+  - **Stagger Animations** - Stock list items animate in sequence
+  - **Hero Animations** - Homepage elements animate on load
+  - **Interactive Feedback** - Hover/tap effects on buttons and cards
+- **Animation Components** - Reusable animation utilities
+  - `PageTransitionProvider` - Wraps app for route transitions
+  - `AnimatedSection` - Scroll-triggered animations
+  - `StaggeredList` - Animated list container
+  - `CountUp` - Animated number counting
+
+### Technical
+- **New Dependency**: `framer-motion` for animations
+- **New Hook**: `useTradeStatistics` - Calculates PnL, averages, calendar data
+- **New Components**: 
+  - `src/components/features/trade-dashboard/` (6 components)
+  - `src/components/ui/page-transition.tsx`
+  - `src/components/ui/animated-section.tsx`
+  - `src/components/providers/page-transition-provider.tsx`
+
 ## [0.8.0] - 2026-01-02
 
 ### Added
