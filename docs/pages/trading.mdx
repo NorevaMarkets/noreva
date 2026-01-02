@@ -2,6 +2,29 @@
 
 Learn how to trade tokenized stocks on Noreva.
 
+## Trading Terminal
+
+Noreva features a dedicated **Trading Terminal** at [noreva.markets/trade](https://noreva.markets/trade):
+
+- **Stock Sidebar** - All available stocks in a collapsible left panel
+- **Quick Search** - Filter stocks by symbol or name
+- **Favorites First** - Your starred stocks appear at the top
+- **One-Click Switching** - Instantly switch between stocks without leaving the page
+- **Collapse Mode** - Minimize sidebar to icons for more chart space
+
+### Layout
+
+```
+┌─────────┬────────────────────────────┬──────────────┐
+│ Sidebar │         Chart              │  Market Data │
+│         │                            │  Fundamentals│
+│ ⭐NVDA  │   [TradingView Chart]      │  News        │
+│   AAPL  │                            ├──────────────┤
+│   TSLA  │                            │  Trading     │
+│   ...   │                            │  Panel       │
+└─────────┴────────────────────────────┴──────────────┘
+```
+
 ## Understanding Spreads
 
 The **spread** is the difference between the tokenized stock price and the underlying stock price:
@@ -49,13 +72,29 @@ Before trading, check the **Market** tab for important data:
 
 ## Slippage Settings
 
-Default slippage is set to **2.5%** for tokenized stocks. This is higher than typical DEX trades because:
+Slippage tolerance is now **fully configurable** in the Trading Panel:
+
+### How to Set Slippage
+
+1. Look for the **⚙️ gear icon** next to "Swap" in the Trading Panel
+2. Click to open the slippage settings dropdown
+3. Choose a preset: **0.5%**, **1%**, **2.5%**, or **5%**
+4. Or enter a custom value (0.1% - 50%)
+
+### Default: 2.5%
+
+The default slippage is set to **2.5%** for tokenized stocks. This is higher than typical DEX trades because:
 
 - Tokenized stocks have lower liquidity than major tokens
 - Price can move between quote and execution
 - Higher slippage improves success rate
 
-> ⚠️ **Warning:** Higher slippage increases the chance of your trade executing but may result in a worse price.
+### Warnings
+
+- **Low slippage (<0.5%)** - May cause transaction failure due to price movement
+- **High slippage (>5%)** - You may receive significantly less than quoted
+
+> 💡 **Tip:** Start with 2.5% default. If transactions fail, try increasing slippage. For large trades, consider higher slippage.
 
 ## Buy vs Sell
 
