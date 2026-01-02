@@ -68,6 +68,8 @@ const config: DocsThemeConfig = {
   },
   toc: {
     float: true,
+    title: 'On This Page',
+    backToTop: true,
   },
   editLink: {
     text: '',
