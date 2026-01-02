@@ -6,7 +6,7 @@ const PUBLIC_ROUTES = [
   "/terms",
   "/privacy",
   "/login",
-  "/api/auth/verify",
+  "/api/", // All API routes should be accessible
 ];
 
 // Check if a path starts with any of the public routes
