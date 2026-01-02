@@ -15,6 +15,7 @@ import {
 } from "@/lib/swap";
 import { useWalletBalance, USDC_DECIMALS } from "@/hooks/use-wallet-balance";
 import { useTradeHistory } from "@/hooks/use-trade-history";
+import { useWalletAuth } from "@/hooks/use-wallet-auth";
 
 interface TradingPanelProps {
   stock: StockWithPrice;
@@ -28,6 +29,7 @@ export function TradingPanel({ stock }: TradingPanelProps) {
   const { connection } = useConnection();
   const { sol: solBalance, usdc: usdcBalance, isLoading: isLoadingBalance, error: balanceError, refetch: refetchBalances } = useWalletBalance();
   const { recordTrade } = useTradeHistory({ autoFetch: false });
+  const { isAuthenticated, authenticate } = useWalletAuth();
   
   const [mode, setMode] = useState<"buy" | "sell">("buy");
   const [paymentToken, setPaymentToken] = useState<PaymentToken>("USDC");
@@ -251,21 +253,36 @@ export function TradingPanel({ stock }: TradingPanelProps) {
           : (paymentToken === "USDC" ? (outputAmount || 0) : parsedAmount * stock.price.tokenPrice);
         
         // Record trade in background (non-blocking)
-        recordTrade({
-          type: mode,
-          symbol: stock.symbol,
-          stockName: stock.name,
-          tokenAmount,
-          usdcAmount,
-          pricePerToken: stock.price.tokenPrice,
-          txSignature: result.signature,
-        }).then((tradeRecord) => {
+        // If not authenticated, try to authenticate first (silent - won't block UI)
+        const doRecordTrade = async () => {
+          // If not authenticated, try to authenticate first
+          if (!isAuthenticated) {
+            console.log("[Trade] Not authenticated, attempting auth before recording...");
+            const authSuccess = await authenticate();
+            if (!authSuccess) {
+              console.warn("[Trade] Auth failed, trade not recorded (can still see it on Solscan)");
+              return;
+            }
+          }
+          
+          const tradeRecord = await recordTrade({
+            type: mode,
+            symbol: stock.symbol,
+            stockName: stock.name,
+            tokenAmount,
+            usdcAmount,
+            pricePerToken: stock.price.tokenPrice,
+            txSignature: result.signature,
+          });
+          
           if (tradeRecord) {
             console.log("[Trade] Recorded successfully:", tradeRecord.id);
           } else {
             console.warn("[Trade] Failed to record trade");
           }
-        }).catch((tradeErr) => {
+        };
+        
+        doRecordTrade().catch((tradeErr) => {
           console.error("[Trade] Error recording trade:", tradeErr);
         });
         
@@ -337,9 +354,11 @@ export function TradingPanel({ stock }: TradingPanelProps) {
         setAmount(floorToDecimals(usdcBalance, 2).toString());
       }
     } else {
-      // Max is stock token balance - floor to avoid rounding issues
+      // Max is stock token balance - use 99% to leave room for Token-2022 transfer fees
+      // Token-2022 tokens often have transfer fees that need to be accounted for
+      const maxStock = stockBalance * 0.99; // Leave 1% for potential fees
       const decimals = stockDecimals > 4 ? 4 : stockDecimals;
-      setAmount(floorToDecimals(stockBalance, decimals).toString());
+      setAmount(floorToDecimals(maxStock, decimals).toString());
     }
   };
   
