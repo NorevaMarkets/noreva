@@ -175,11 +175,12 @@ export function TradingPanel({ stock }: TradingPanelProps) {
   const handleSwap = async () => {
     if (!quote || !publicKey || !signTransaction || !tokenMintAddress) return;
 
-    setStatus("signing");
+    // First, show "fetching" while we get the transaction
+    setStatus("fetching");
     setError(null);
 
     try {
-      // Get the swap transaction
+      // Get the swap transaction from Jupiter
       const swapTx = await getSwapTransaction(quote, publicKey.toString());
       
       if (!swapTx) {
@@ -187,6 +188,9 @@ export function TradingPanel({ stock }: TradingPanelProps) {
         setError("Failed to create swap transaction");
         return;
       }
+
+      // NOW we're ready to sign - this is when the wallet popup appears
+      setStatus("signing");
 
       // Execute the swap with status callbacks
       const result = await executeSwap(
@@ -196,8 +200,8 @@ export function TradingPanel({ stock }: TradingPanelProps) {
         swapTx.lastValidBlockHeight,
         (stage: SwapStage) => {
           // Map swap stages to UI status
-          if (stage === "signing") setStatus("signing");
-          else if (stage === "sending") setStatus("sending");
+          // Note: "signing" is already set above before executeSwap
+          if (stage === "sending") setStatus("sending");
           else if (stage === "confirming") setStatus("confirming");
           // "confirmed" and "error" are handled below
         }
@@ -208,7 +212,7 @@ export function TradingPanel({ stock }: TradingPanelProps) {
         setStatus("success");
         setTxSignature(result.signature);
         
-        // Record trade in database
+        // Record trade in database (don't await to avoid blocking UI)
         const tokenAmount = mode === "buy" 
           ? parseFloat(quote.outAmount) / Math.pow(10, stockDecimals)
           : parsedAmount;
@@ -216,27 +220,24 @@ export function TradingPanel({ stock }: TradingPanelProps) {
           ? (paymentToken === "USDC" ? parsedAmount : (outputAmount || 0))
           : (paymentToken === "USDC" ? (outputAmount || 0) : parsedAmount * stock.price.tokenPrice);
         
-        // Await recordTrade and log any errors
-        try {
-          const tradeRecord = await recordTrade({
-            type: mode,
-            symbol: stock.symbol,
-            stockName: stock.name,
-            tokenAmount,
-            usdcAmount,
-            pricePerToken: stock.price.tokenPrice,
-            txSignature: result.signature,
-          });
-          
+        // Record trade in background (non-blocking)
+        recordTrade({
+          type: mode,
+          symbol: stock.symbol,
+          stockName: stock.name,
+          tokenAmount,
+          usdcAmount,
+          pricePerToken: stock.price.tokenPrice,
+          txSignature: result.signature,
+        }).then((tradeRecord) => {
           if (tradeRecord) {
             console.log("[Trade] Recorded successfully:", tradeRecord.id);
           } else {
-            console.warn("[Trade] Failed to record trade (auth may be required)");
+            console.warn("[Trade] Failed to record trade");
           }
-        } catch (tradeErr) {
+        }).catch((tradeErr) => {
           console.error("[Trade] Error recording trade:", tradeErr);
-          // Don't fail the swap if trade recording fails
-        }
+        });
         
         setAmount("");
         setQuote(null);

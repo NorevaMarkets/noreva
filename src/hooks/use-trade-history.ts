@@ -89,17 +89,15 @@ export function useTradeHistory(options: UseTradeHistoryOptions = {}): UseTradeH
       txSignature?: string;
     }): Promise<Trade | null> => {
       if (!walletAddress) {
-        setError("Wallet not connected");
+        console.log("[Trade] No wallet connected, skipping trade recording");
         return null;
       }
 
-      // Auto-authenticate if needed
+      // Don't auto-authenticate - this would show a wallet popup during success screen
+      // If not authenticated, silently skip trade recording
       if (!isAuthenticated) {
-        const success = await authenticate();
-        if (!success) {
-          setError("Authentication required");
-          return null;
-        }
+        console.log("[Trade] Not authenticated, skipping trade recording (visit Account to authenticate)");
+        return null;
       }
 
       try {
@@ -119,16 +117,15 @@ export function useTradeHistory(options: UseTradeHistoryOptions = {}): UseTradeH
           setTrades((prev) => [toTradeDisplay(data.data), ...prev]);
           return data.data;
         } else {
-          setError(data.error || "Failed to record trade");
+          console.warn("[Trade] Failed to record:", data.error);
           return null;
         }
       } catch (err) {
-        console.error("useTradeHistory record error:", err);
-        setError("Failed to connect to server");
+        console.error("[Trade] Record error:", err);
         return null;
       }
     },
-    [walletAddress, isAuthenticated, authenticate, getAuthHeaders]
+    [walletAddress, isAuthenticated, getAuthHeaders]
   );
 
   // Update a trade (e.g., confirm status)
