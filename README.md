@@ -12,8 +12,9 @@ Noreva is a web application for tracking and trading tokenized stocks on the Sol
 - **Real-time Stock Tracking** - Monitor tokenized stocks like AAPLx, TSLAx, NVDAx and more
 - **Spread Analysis** - See premium/discount between token and stock prices
 - **24/7 Trading** - Trade via Jupiter DEX when traditional markets are closed
-- **TradingView Charts** - Professional charting with technical analysis tools
+- **TradingView Charts** - Professional charting (responsive on mobile!)
 - **Trade History** - All your trades saved to database and viewable in portfolio
+- **Stock Favorites** - Mark favorite stocks with a star, shown at top of list
 
 ### Market Data
 - **Stock Fundamentals** - P/E Ratio, P/B, dividends, 52-week range, and more (via Finnhub)
@@ -29,7 +30,8 @@ Noreva is a web application for tracking and trading tokenized stocks on the Sol
 
 ### Technical
 - **Beautiful Dark UI** - Premium gold/amber theme optimized for trading
-- **Responsive Design** - Works on desktop and mobile
+- **Fully Responsive** - Optimized for desktop, tablet, and mobile
+- **Mobile Charts** - TradingView charts adapt to smaller screens
 - **Local Stock Logos** - Fast loading with locally cached logos
 
 ## Getting Started

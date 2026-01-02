@@ -5,6 +5,34 @@ All notable changes to Noreva will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-01-02
+
+### Added
+- **Responsive TradingView Chart** - Mobile-optimized chart display
+  - Smaller height (280px) on mobile devices
+  - Hidden toolbars for cleaner look
+  - Hidden volume and legend on mobile
+  - Desktop remains full-featured
+- **Pre-Simulation for Phantom** - Better wallet compatibility
+  - Simulates transactions before signing (as recommended by Phantom)
+  - Soft check - logs warnings but doesn't block
+  - Reduces "unsafe dApp" warnings
+
+### Changed
+- **MAX Button Fix** - Now uses 99% for Token-2022 tokens
+  - Leaves 1% buffer for transfer fees
+  - Prevents "insufficient balance" errors on max sells
+- **Auto-Auth for Trade Recording** - Improved trade history
+  - Automatically prompts for authentication if needed
+  - Trades no longer silently skipped
+- **Slippage** - Increased default to 2.5% for better success rate
+
+### Technical
+- `tradingview-widget.tsx` - Added `useIsMobile` hook, responsive config
+- `trading-chart.tsx` - Responsive container heights
+- `trading-panel.tsx` - Auto-auth logic, 99% max for sells
+- `jupiter-swap.ts` - Pre-simulation with `sigVerify: false`
+
 ## [0.7.0] - 2026-01-02
 
 ### Added
