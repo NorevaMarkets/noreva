@@ -8,18 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.12.0] - 2026-01-02
 
 ### Added
-- **Animated Price Updates** - Prices flash green/red when they change
-  - `AnimatedPrice` component for USD values
-  - `AnimatedPercent` component for percentage values
-  - CSS keyframe animations for smooth flash effect
-  - Applied to Stock Table, Trade Page Header, and Sidebar
-  - Visual feedback shows data is live updating
+- **Password Protection** - Site-wide password gate for private beta
+  - Login page at `/login` with password input
+  - Middleware protects all routes except `/terms`, `/privacy`, `/login`
+  - Password stored in `SITE_PASSWORD` environment variable on Vercel
+  - Auth cookie persists for 7 days
+  - Beautiful login UI with Noreva branding
+  - Links to Terms and Privacy from login page
 
 ### Technical
-- New component: `src/components/ui/animated-price.tsx`
-- CSS animations: `priceFlashUp`, `priceFlashDown` in globals.css
-- Tracks previous value to determine direction of change
-- 800ms animation duration for subtle but noticeable effect
+- New middleware: `src/middleware.ts`
+- New route: `src/app/login/page.tsx`
+- New API: `src/app/api/auth/verify/route.ts`
+- Cookie-based authentication with httpOnly flag
 
 ## [0.11.0] - 2026-01-02
 
