@@ -190,29 +190,45 @@ export async function executeSwap(
       });
       
       if (simulation.value.err) {
-        console.error("[Swap] Simulation failed:", simulation.value.err);
+        console.error("[Swap] Simulation failed:", JSON.stringify(simulation.value.err, null, 2));
+        console.error("[Swap] Simulation logs:", simulation.value.logs);
         const simError = JSON.stringify(simulation.value.err);
         
+        // Extract custom error code if present
+        const customMatch = simError.match(/Custom.*?(\d+)/);
+        const customCode = customMatch ? customMatch[1] : null;
+        console.error("[Swap] Custom error code:", customCode);
+        
         // Check for common errors
-        if (simError.includes("6034") || simError.includes("6035")) {
+        if (customCode === "6034" || customCode === "6035" || simError.includes("SlippageToleranceExceeded")) {
           updateStatus("error");
           return {
             success: false,
-            error: "Price changed too much. Please get a new quote and try again.",
+            error: "Price changed too much (slippage). Try a smaller amount.",
           };
         }
-        if (simError.includes("InsufficientFunds") || simError.includes("insufficient") || simError.includes("0x1")) {
+        if (customCode === "1" || simError.includes("InsufficientFunds") || simError.includes("insufficient")) {
           updateStatus("error");
           return {
             success: false,
-            error: "Insufficient funds for this swap.",
+            error: "Insufficient token balance for this swap.",
+          };
+        }
+        if (customCode === "17" || simError.includes("AccountNotFound")) {
+          updateStatus("error");
+          return {
+            success: false,
+            error: "Token account not found. You may need to create it first.",
           };
         }
         
+        // Generic error with code
         updateStatus("error");
         return {
           success: false,
-          error: "Transaction would fail. Please try again with a fresh quote.",
+          error: customCode 
+            ? `Swap failed (error ${customCode}). Try a smaller amount or different token.`
+            : "Transaction would fail. Try a smaller amount.",
         };
       }
       console.log("[Swap] Simulation successful, proceeding to sign...");
