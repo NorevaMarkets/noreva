@@ -148,7 +148,7 @@ export function TradingPanel({ stock }: TradingPanelProps) {
         inputMint,
         outputMint,
         amount: inputAmount,
-        slippageBps: 150, // 1.5% slippage (tokenized stocks have less liquidity)
+        slippageBps: 250, // 2.5% slippage (tokenized stocks have less liquidity)
         userPublicKey: publicKey.toString(),
       });
 

@@ -180,6 +180,47 @@ export async function executeSwap(
     console.log("[Swap] Transaction blockhash:", transactionBlockhash);
     console.log("[Swap] lastValidBlockHeight from Jupiter:", lastValidBlockHeight);
     
+    // Pre-simulate the transaction to catch errors before signing
+    // This also helps reduce Phantom's "unsafe" warning
+    console.log("[Swap] Pre-simulating transaction...");
+    try {
+      const simulation = await conn.simulateTransaction(transaction, {
+        sigVerify: false, // Don't verify signatures (we haven't signed yet)
+        commitment: "confirmed",
+      });
+      
+      if (simulation.value.err) {
+        console.error("[Swap] Simulation failed:", simulation.value.err);
+        const simError = JSON.stringify(simulation.value.err);
+        
+        // Check for common errors
+        if (simError.includes("6034") || simError.includes("6035")) {
+          updateStatus("error");
+          return {
+            success: false,
+            error: "Price changed too much. Please get a new quote and try again.",
+          };
+        }
+        if (simError.includes("InsufficientFunds") || simError.includes("insufficient") || simError.includes("0x1")) {
+          updateStatus("error");
+          return {
+            success: false,
+            error: "Insufficient funds for this swap.",
+          };
+        }
+        
+        updateStatus("error");
+        return {
+          success: false,
+          error: "Transaction would fail. Please try again with a fresh quote.",
+        };
+      }
+      console.log("[Swap] Simulation successful, proceeding to sign...");
+    } catch (simError) {
+      console.warn("[Swap] Simulation check failed (continuing anyway):", simError);
+      // Continue anyway - simulation can fail for various reasons
+    }
+    
     // Stage 1: Requesting signature
     updateStatus("signing");
     console.log("[Swap] Requesting wallet signature...");
