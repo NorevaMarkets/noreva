@@ -173,15 +173,45 @@ export function TradingPanel({ stock }: TradingPanelProps) {
 
   // Handle swap execution
   const handleSwap = async () => {
-    if (!quote || !publicKey || !signTransaction || !tokenMintAddress) return;
+    if (!publicKey || !signTransaction || !tokenMintAddress || !inputAmount) return;
 
-    // First, show "fetching" while we get the transaction
+    // First, show "fetching" while we get a FRESH quote and transaction
     setStatus("fetching");
     setError(null);
 
     try {
-      // Get the swap transaction from Jupiter
-      const swapTx = await getSwapTransaction(quote, publicKey.toString());
+      // Get a FRESH quote right before swap (prevents stale price errors)
+      let inputMint: string;
+      let outputMint: string;
+
+      if (mode === "buy") {
+        inputMint = paymentToken === "USDC" ? TOKENS.USDC : TOKENS.SOL;
+        outputMint = tokenMintAddress;
+      } else {
+        inputMint = tokenMintAddress;
+        outputMint = paymentToken === "USDC" ? TOKENS.USDC : TOKENS.SOL;
+      }
+
+      console.log("[Swap] Getting fresh quote...");
+      const freshQuote = await getSwapQuote({
+        inputMint,
+        outputMint,
+        amount: inputAmount,
+        slippageBps: 250, // 2.5% slippage
+        userPublicKey: publicKey.toString(),
+      });
+
+      if (!freshQuote) {
+        setStatus("error");
+        setError("Failed to get quote. No route available.");
+        return;
+      }
+
+      // Update the displayed quote
+      setQuote(freshQuote);
+
+      // Get the swap transaction from Jupiter with fresh quote
+      const swapTx = await getSwapTransaction(freshQuote, publicKey.toString());
       
       if (!swapTx) {
         setStatus("error");
@@ -214,7 +244,7 @@ export function TradingPanel({ stock }: TradingPanelProps) {
         
         // Record trade in database (don't await to avoid blocking UI)
         const tokenAmount = mode === "buy" 
-          ? parseFloat(quote.outAmount) / Math.pow(10, stockDecimals)
+          ? parseFloat(freshQuote.outAmount) / Math.pow(10, stockDecimals)
           : parsedAmount;
         const usdcAmount = mode === "buy"
           ? (paymentToken === "USDC" ? parsedAmount : (outputAmount || 0))
