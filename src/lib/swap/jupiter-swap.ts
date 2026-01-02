@@ -228,9 +228,24 @@ export async function executeSwap(
       if (confirmation.value.err) {
         console.error("[Swap] Transaction failed:", confirmation.value.err);
         updateStatus("error");
+        
+        // Parse the error for user-friendly message
+        const errorStr = JSON.stringify(confirmation.value.err);
+        let userError = "Transaction failed on-chain.";
+        
+        // Check for common error codes
+        if (errorStr.includes("6034") || errorStr.includes("6035")) {
+          userError = "Price changed too much (slippage). Please try again with a fresh quote.";
+        } else if (errorStr.includes("InsufficientFunds") || errorStr.includes("insufficient")) {
+          userError = "Insufficient funds for this swap.";
+        } else if (errorStr.includes("1")) {
+          // Custom error 1 is often "insufficient funds" in token programs
+          userError = "Insufficient token balance.";
+        }
+        
         return {
           success: false,
-          error: "Transaction failed: " + JSON.stringify(confirmation.value.err),
+          error: userError,
           signature,
         };
       }
@@ -266,9 +281,20 @@ export async function executeSwap(
             // Transaction failed on-chain
             console.error("[Swap] Transaction failed on-chain:", status.value.err);
             updateStatus("error");
+            
+            // Parse the error for user-friendly message
+            const errorStr = JSON.stringify(status.value.err);
+            let userError = "Transaction failed on-chain.";
+            
+            if (errorStr.includes("6034") || errorStr.includes("6035")) {
+              userError = "Price changed too much (slippage). Please try again with a fresh quote.";
+            } else if (errorStr.includes("InsufficientFunds") || errorStr.includes("insufficient")) {
+              userError = "Insufficient funds for this swap.";
+            }
+            
             return {
               success: false,
-              error: "Transaction failed on-chain. Check Solscan for details.",
+              error: userError,
               signature,
             };
           }
