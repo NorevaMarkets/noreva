@@ -9,16 +9,20 @@ import type { StockWithPrice } from "@/types";
 interface StockRowProps {
   stock: StockWithPrice;
   onClick?: () => void;
+  isFavorite?: boolean;
+  onToggleFavorite?: (symbol: string) => void;
+  canFavorite?: boolean; // Whether user is authenticated
 }
 
-export function StockRow({ stock, onClick }: StockRowProps) {
+export function StockRow({ stock, onClick, isFavorite = false, onToggleFavorite, canFavorite = false }: StockRowProps) {
   const { symbol, name, underlying, price, provider, logoUrl } = stock;
   
   const isPositive = price.spread >= 0;
-  const spreadBadgeVariant = 
-    price.spreadDirection === "premium" ? "negative" :
-    price.spreadDirection === "discount" ? "positive" :
-    "muted";
+
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent row click
+    onToggleFavorite?.(symbol);
+  };
 
   return (
     <div
@@ -26,7 +30,10 @@ export function StockRow({ stock, onClick }: StockRowProps) {
       className={cn(
         "group relative px-3 sm:px-4 py-3 sm:py-3.5",
         "hover:bg-[var(--background-elevated)] cursor-pointer transition-all duration-200",
-        "border-l-2 border-l-transparent hover:border-l-[var(--accent)]"
+        // Golden border for favorites
+        isFavorite 
+          ? "border-l-2 border-l-amber-500 bg-gradient-to-r from-amber-500/5 to-transparent" 
+          : "border-l-2 border-l-transparent hover:border-l-[var(--accent)]"
       )}
     >
       {/* Hover glow effect */}
@@ -35,6 +42,30 @@ export function StockRow({ stock, onClick }: StockRowProps) {
       {/* Mobile Layout */}
       <div className="sm:hidden relative">
         <div className="flex items-center justify-between gap-3">
+          {/* Favorite Star */}
+          {canFavorite && (
+            <button
+              onClick={handleFavoriteClick}
+              className={cn(
+                "shrink-0 p-1 rounded-full transition-all duration-200",
+                isFavorite 
+                  ? "text-amber-400" 
+                  : "text-[var(--foreground-subtle)] hover:text-amber-400/70"
+              )}
+              title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            >
+              <svg 
+                className="w-4 h-4" 
+                fill={isFavorite ? "currentColor" : "none"} 
+                viewBox="0 0 24 24" 
+                stroke="currentColor" 
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+              </svg>
+            </button>
+          )}
+
           {/* Left: Logo + Info */}
           <div className="flex items-center gap-2.5 min-w-0 flex-1">
             <StockLogo symbol={underlying} logoUrl={logoUrl} size="sm" />
@@ -67,7 +98,33 @@ export function StockRow({ stock, onClick }: StockRowProps) {
       </div>
 
       {/* Desktop Layout */}
-      <div className="hidden sm:grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-4">
+      <div className="hidden sm:grid grid-cols-[auto_1fr_auto_auto_auto_auto] items-center gap-4">
+        {/* Favorite Star */}
+        {canFavorite ? (
+          <button
+            onClick={handleFavoriteClick}
+            className={cn(
+              "shrink-0 p-1.5 rounded-full transition-all duration-200 hover:bg-amber-500/10",
+              isFavorite 
+                ? "text-amber-400 hover:text-amber-300" 
+                : "text-[var(--foreground-subtle)] hover:text-amber-400/70"
+            )}
+            title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+          >
+            <svg 
+              className="w-5 h-5" 
+              fill={isFavorite ? "currentColor" : "none"} 
+              viewBox="0 0 24 24" 
+              stroke="currentColor" 
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+            </svg>
+          </button>
+        ) : (
+          <div className="w-8" /> 
+        )}
+
         {/* Stock Info */}
         <div className="relative flex items-center gap-3 min-w-0">
           <StockLogo symbol={underlying} logoUrl={logoUrl} />

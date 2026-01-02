@@ -46,7 +46,9 @@ export function StockTableHeader({
       </div>
 
       {/* Desktop Header */}
-      <div className="hidden sm:grid grid-cols-[1fr_auto_auto_auto_auto] items-center gap-4 px-4 py-2 border-b border-[var(--border)] bg-[var(--background-secondary)]">
+      <div className="hidden sm:grid grid-cols-[auto_1fr_auto_auto_auto_auto] items-center gap-4 px-4 py-2 border-b border-[var(--border)] bg-[var(--background-secondary)]">
+        {/* Empty space for star column */}
+        <div className="w-8" />
         <HeaderCell 
           label="Stock" 
           field="symbol" 

@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { StockRow } from "./stock-row";
 import { StockTableHeader } from "./stock-table-header";
+import { useFavorites } from "@/hooks";
 import type { StockWithPrice, SortField, SortConfig } from "@/types";
 
 const ITEMS_PER_PAGE = 10;
@@ -23,6 +24,9 @@ export function StockTable({
     direction: "desc",
   });
   const [currentPage, setCurrentPage] = useState(1);
+  
+  // Favorites hook
+  const { favorites, isFavorite, toggleFavorite, isAuthenticated } = useFavorites();
 
   const handleSort = (field: SortField) => {
     setSortConfig(prev => ({
@@ -44,8 +48,16 @@ export function StockTable({
       );
     }
 
-    // Sort
+    // Sort - favorites always on top first, then by selected sort
     result.sort((a, b) => {
+      // First: favorites at the top
+      const aIsFav = favorites.includes(a.symbol);
+      const bIsFav = favorites.includes(b.symbol);
+      
+      if (aIsFav && !bIsFav) return -1;
+      if (!aIsFav && bIsFav) return 1;
+      
+      // Then: normal sort
       let comparison = 0;
       
       switch (sortConfig.field) {
@@ -70,7 +82,7 @@ export function StockTable({
     });
 
     return result;
-  }, [stocks, searchQuery, sortConfig]);
+  }, [stocks, searchQuery, sortConfig, favorites]);
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredAndSortedStocks.length / ITEMS_PER_PAGE);
@@ -125,6 +137,9 @@ export function StockTable({
               key={stock.id}
               stock={stock}
               onClick={() => onStockClick?.(stock)}
+              isFavorite={isFavorite(stock.symbol)}
+              onToggleFavorite={toggleFavorite}
+              canFavorite={isAuthenticated}
             />
           ))}
         </div>
