@@ -44,6 +44,12 @@ export function LiquidityPanel({
   // Copy to clipboard state
   const [copied, setCopied] = useState(false);
 
+  // IMPORTANT: Call ALL hooks at the top level to avoid "Rendered more hooks" error
+  // These must be called unconditionally, regardless of expanded state
+  const { data: analystData, isLoading: analystLoading } = useAnalystData(symbol);
+  const { data: earningsData, isLoading: earningsLoading } = useEarningsData(symbol);
+  const { data: insiderData, isLoading: insiderLoading } = useInsiderData(symbol);
+
   const toggleSection = (section: string) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
@@ -197,7 +203,7 @@ export function LiquidityPanel({
           expanded={expandedSections.analyst}
           onToggle={() => toggleSection("analyst")}
         >
-          <AnalystContent symbol={symbol} />
+          <AnalystContent data={analystData} isLoading={analystLoading} />
         </CollapsibleSection>
 
         {/* Earnings Section */}
@@ -207,7 +213,7 @@ export function LiquidityPanel({
           expanded={expandedSections.earnings}
           onToggle={() => toggleSection("earnings")}
         >
-          <EarningsContent symbol={symbol} />
+          <EarningsContent data={earningsData} isLoading={earningsLoading} />
         </CollapsibleSection>
 
         {/* Insider Section */}
@@ -217,14 +223,14 @@ export function LiquidityPanel({
           expanded={expandedSections.insider}
           onToggle={() => toggleSection("insider")}
         >
-          <InsiderContent symbol={symbol} />
+          <InsiderContent data={insiderData} isLoading={insiderLoading} />
         </CollapsibleSection>
       </div>
     </div>
   );
 }
 
-// Collapsible Section Component
+// Collapsible Section Component - Now receives pre-fetched data to avoid conditional hooks
 interface CollapsibleSectionProps {
   title: string;
   icon: React.ReactNode;
@@ -249,18 +255,25 @@ function CollapsibleSection({ title, icon, expanded, onToggle, children }: Colla
           expanded && "rotate-180"
         )} />
       </button>
-      {expanded && (
+      <div className={cn(
+        "overflow-hidden transition-all duration-200",
+        expanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+      )}>
         <div className="px-3 pb-3 border-t border-[var(--border)]">
           {children}
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
-// Analyst Content
-function AnalystContent({ symbol }: { symbol: string }) {
-  const { data, isLoading } = useAnalystData(symbol);
+// Analyst Content - receives pre-fetched data
+interface AnalystContentProps {
+  data: ReturnType<typeof useAnalystData>["data"];
+  isLoading: boolean;
+}
+
+function AnalystContent({ data, isLoading }: AnalystContentProps) {
   const { recommendations, priceTarget } = data;
 
   if (isLoading) {
@@ -341,9 +354,13 @@ function AnalystContent({ symbol }: { symbol: string }) {
   );
 }
 
-// Earnings Content
-function EarningsContent({ symbol }: { symbol: string }) {
-  const { data, isLoading } = useEarningsData(symbol);
+// Earnings Content - receives pre-fetched data
+interface EarningsContentProps {
+  data: ReturnType<typeof useEarningsData>["data"];
+  isLoading: boolean;
+}
+
+function EarningsContent({ data, isLoading }: EarningsContentProps) {
   const { nextEarnings, history } = data;
 
   if (isLoading) {
@@ -410,15 +427,18 @@ function EarningsContent({ symbol }: { symbol: string }) {
   );
 }
 
-// Insider Content
-function InsiderContent({ symbol }: { symbol: string }) {
-  const { data: insiderData, isLoading: insiderLoading } = useInsiderData(symbol);
+// Insider Content - receives pre-fetched data
+interface InsiderContentProps {
+  data: ReturnType<typeof useInsiderData>["data"];
+  isLoading: boolean;
+}
 
-  if (insiderLoading) {
+function InsiderContent({ data, isLoading }: InsiderContentProps) {
+  if (isLoading) {
     return <div className="py-2 text-[9px] text-[var(--foreground-subtle)]">Loading...</div>;
   }
 
-  const { summary, transactions } = insiderData;
+  const { summary, transactions } = data;
 
   return (
     <div className="pt-2 space-y-2">
