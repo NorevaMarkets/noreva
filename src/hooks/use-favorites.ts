@@ -8,6 +8,7 @@ interface UseFavoritesReturn {
   favorites: string[];
   isLoading: boolean;
   isAuthenticated: boolean;
+  canFavorite: boolean; // Whether the user CAN use favorites (wallet connected)
   isFavorite: (symbol: string) => boolean;
   toggleFavorite: (symbol: string) => Promise<boolean>;
   refetch: () => Promise<void>;
@@ -18,7 +19,7 @@ interface UseFavoritesReturn {
  */
 export function useFavorites(): UseFavoritesReturn {
   const { publicKey, connected } = useWallet();
-  const { isAuthenticated, getAuthHeaders } = useWalletAuth();
+  const { isAuthenticated, authenticate, getAuthHeaders } = useWalletAuth();
   const [favorites, setFavorites] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -60,12 +61,24 @@ export function useFavorites(): UseFavoritesReturn {
     [favorites]
   );
 
-  // Toggle favorite status
+  // Toggle favorite status (auto-authenticates if needed)
   const toggleFavorite = useCallback(
     async (symbol: string): Promise<boolean> => {
-      if (!walletAddress || !isAuthenticated) {
-        console.log("[Favorites] Not authenticated, cannot toggle");
+      if (!walletAddress) {
+        console.log("[Favorites] No wallet connected");
         return false;
+      }
+
+      // Auto-authenticate if not already authenticated
+      let currentlyAuthenticated = isAuthenticated;
+      if (!currentlyAuthenticated) {
+        console.log("[Favorites] Not authenticated, requesting signature...");
+        const authSuccess = await authenticate();
+        if (!authSuccess) {
+          console.log("[Favorites] Authentication failed or rejected");
+          return false;
+        }
+        currentlyAuthenticated = true;
       }
 
       const isCurrentlyFavorite = favorites.includes(symbol);
@@ -140,6 +153,7 @@ export function useFavorites(): UseFavoritesReturn {
     favorites,
     isLoading,
     isAuthenticated,
+    canFavorite: connected, // User can favorite if wallet is connected (auth will be requested on click)
     isFavorite,
     toggleFavorite,
     refetch: fetchFavorites,

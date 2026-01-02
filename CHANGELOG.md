@@ -5,6 +5,38 @@ All notable changes to Noreva will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-01-02
+
+### Added
+- **Stock Favorites** - Mark your favorite stocks with a star ⭐
+  - Click the star icon to add/remove favorites
+  - Favorites shown at top of stock list
+  - Golden border highlights favorite stocks
+  - Stored in database per wallet
+- **Auto-Authentication** - Seamless signature request on first use
+  - No need to visit Account page first
+  - Wallet signature requested when clicking star
+  - Once signed, authenticated for 24 hours
+
+### Changed
+- **Swap Reliability** - Improved transaction confirmation
+  - Uses correct blockhash from Jupiter transaction
+  - Increased priority fees (veryHigh level)
+  - Fallback confirmation check for edge cases
+  - Better error messages for expired transactions
+- **Trade Recording** - No longer auto-prompts for signature
+  - Only records if already authenticated
+  - Prevents double wallet popups during swaps
+
+### Technical
+- **New Database Table** - `favorites` table with RLS
+  - Unique constraint per wallet/symbol
+  - Foreign key to users table
+- **New API Route** - `/api/favorites` (GET/POST/DELETE)
+- **New Hook** - `useFavorites` with auto-auth support
+- **Stock Row** - Added star icon and golden border styling
+- **Stock Table** - Favorites always sorted to top
+
 ## [0.6.0] - 2025-12-31
 
 ### Added

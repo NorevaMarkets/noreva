@@ -26,7 +26,7 @@ export function StockTable({
   const [currentPage, setCurrentPage] = useState(1);
   
   // Favorites hook
-  const { favorites, isFavorite, toggleFavorite, isAuthenticated } = useFavorites();
+  const { favorites, isFavorite, toggleFavorite, canFavorite } = useFavorites();
 
   const handleSort = (field: SortField) => {
     setSortConfig(prev => ({
@@ -139,7 +139,7 @@ export function StockTable({
               onClick={() => onStockClick?.(stock)}
               isFavorite={isFavorite(stock.symbol)}
               onToggleFavorite={toggleFavorite}
-              canFavorite={isAuthenticated}
+              canFavorite={canFavorite}
             />
           ))}
         </div>
