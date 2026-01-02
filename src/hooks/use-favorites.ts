@@ -2,12 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useWalletAuth } from "./use-wallet-auth";
 
 interface UseFavoritesReturn {
   favorites: string[];
   isLoading: boolean;
-  isAuthenticated: boolean;
   canFavorite: boolean; // Whether the user CAN use favorites (wallet connected)
   isFavorite: (symbol: string) => boolean;
   toggleFavorite: (symbol: string) => Promise<boolean>;
@@ -16,18 +14,18 @@ interface UseFavoritesReturn {
 
 /**
  * Hook to manage stock favorites
+ * No authentication required - favorites are not sensitive data
  */
 export function useFavorites(): UseFavoritesReturn {
   const { publicKey, connected } = useWallet();
-  const { isAuthenticated, authenticate, getAuthHeaders } = useWalletAuth();
   const [favorites, setFavorites] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const walletAddress = publicKey?.toBase58() || null;
 
-  // Fetch favorites
+  // Fetch favorites (no auth required)
   const fetchFavorites = useCallback(async () => {
-    if (!walletAddress || !isAuthenticated) {
+    if (!walletAddress) {
       setFavorites([]);
       return;
     }
@@ -36,7 +34,9 @@ export function useFavorites(): UseFavoritesReturn {
 
     try {
       const response = await fetch("/api/favorites", {
-        headers: getAuthHeaders(),
+        headers: {
+          "x-wallet-address": walletAddress,
+        },
       });
 
       const data = await response.json();
@@ -53,7 +53,7 @@ export function useFavorites(): UseFavoritesReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [walletAddress, isAuthenticated, getAuthHeaders]);
+  }, [walletAddress]);
 
   // Check if a symbol is a favorite
   const isFavorite = useCallback(
@@ -61,24 +61,12 @@ export function useFavorites(): UseFavoritesReturn {
     [favorites]
   );
 
-  // Toggle favorite status (auto-authenticates if needed)
+  // Toggle favorite status (no auth required)
   const toggleFavorite = useCallback(
     async (symbol: string): Promise<boolean> => {
       if (!walletAddress) {
         console.log("[Favorites] No wallet connected");
         return false;
-      }
-
-      // Auto-authenticate if not already authenticated
-      let currentlyAuthenticated = isAuthenticated;
-      if (!currentlyAuthenticated) {
-        console.log("[Favorites] Not authenticated, requesting signature...");
-        const authSuccess = await authenticate();
-        if (!authSuccess) {
-          console.log("[Favorites] Authentication failed or rejected");
-          return false;
-        }
-        currentlyAuthenticated = true;
       }
 
       const isCurrentlyFavorite = favorites.includes(symbol);
@@ -95,7 +83,9 @@ export function useFavorites(): UseFavoritesReturn {
           // Remove favorite
           const response = await fetch(`/api/favorites?symbol=${symbol}`, {
             method: "DELETE",
-            headers: getAuthHeaders(),
+            headers: {
+              "x-wallet-address": walletAddress,
+            },
           });
 
           const data = await response.json();
@@ -111,7 +101,7 @@ export function useFavorites(): UseFavoritesReturn {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              ...getAuthHeaders(),
+              "x-wallet-address": walletAddress,
             },
             body: JSON.stringify({ symbol }),
           });
@@ -137,23 +127,22 @@ export function useFavorites(): UseFavoritesReturn {
         return false;
       }
     },
-    [walletAddress, isAuthenticated, favorites, getAuthHeaders]
+    [walletAddress, favorites]
   );
 
-  // Auto-fetch on mount and when wallet connects and authenticates
+  // Auto-fetch on mount and when wallet connects
   useEffect(() => {
-    if (connected && walletAddress && isAuthenticated) {
+    if (connected && walletAddress) {
       fetchFavorites();
     } else if (!connected) {
       setFavorites([]);
     }
-  }, [connected, walletAddress, isAuthenticated, fetchFavorites]);
+  }, [connected, walletAddress, fetchFavorites]);
 
   return {
     favorites,
     isLoading,
-    isAuthenticated,
-    canFavorite: connected, // User can favorite if wallet is connected (auth will be requested on click)
+    canFavorite: connected, // User can favorite if wallet is connected
     isFavorite,
     toggleFavorite,
     refetch: fetchFavorites,

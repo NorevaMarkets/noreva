@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
-import { verifyAuthToken } from "@/lib/auth/verify-signature";
 
 export const dynamic = "force-dynamic";
 
@@ -12,21 +11,12 @@ interface Favorite {
 }
 
 /**
- * Authenticate request using signature verification
+ * Get wallet address from request
+ * Favorites don't require signature auth - just wallet address
+ * (Favorites are not sensitive data)
  */
-function authenticateRequest(request: NextRequest): string | null {
-  const authHeader = request.headers.get("Authorization");
-  if (authHeader) {
-    const wallet = verifyAuthToken(authHeader);
-    if (wallet) return wallet;
-  }
-
-  // Fallback for development
-  if (process.env.NODE_ENV === "development") {
-    return request.headers.get("x-wallet-address");
-  }
-
-  return null;
+function getWalletAddress(request: NextRequest): string | null {
+  return request.headers.get("x-wallet-address");
 }
 
 /**
@@ -34,12 +24,12 @@ function authenticateRequest(request: NextRequest): string | null {
  */
 export async function GET(request: NextRequest) {
   try {
-    const walletAddress = authenticateRequest(request);
+    const walletAddress = getWalletAddress(request);
     
     if (!walletAddress) {
       return NextResponse.json(
-        { success: false, error: "Authentication required" },
-        { status: 401 }
+        { success: false, error: "Wallet address required" },
+        { status: 400 }
       );
     }
 
@@ -79,12 +69,12 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const walletAddress = authenticateRequest(request);
+    const walletAddress = getWalletAddress(request);
     
     if (!walletAddress) {
       return NextResponse.json(
-        { success: false, error: "Authentication required" },
-        { status: 401 }
+        { success: false, error: "Wallet address required" },
+        { status: 400 }
       );
     }
 
@@ -134,12 +124,12 @@ export async function POST(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
-    const walletAddress = authenticateRequest(request);
+    const walletAddress = getWalletAddress(request);
     
     if (!walletAddress) {
       return NextResponse.json(
-        { success: false, error: "Authentication required" },
-        { status: 401 }
+        { success: false, error: "Wallet address required" },
+        { status: 400 }
       );
     }
     

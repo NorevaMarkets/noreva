@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { useWalletAuth } from "@/hooks/use-wallet-auth";
 import { truncateAddress } from "@/lib/utils/format";
 import { cn } from "@/lib/utils";
 
@@ -12,12 +13,15 @@ import { cn } from "@/lib/utils";
  * 
  * A styled wallet button that matches the Noreva design system.
  * Uses the Solana wallet adapter under the hood.
+ * Auto-authenticates after wallet connection.
  */
 export function WalletButton() {
   const router = useRouter();
   const { publicKey, connected, connecting, disconnect, wallet } = useWallet();
   const { setVisible } = useWalletModal();
+  const { isAuthenticated, isAuthenticating, authenticate } = useWalletAuth();
   const [showDropdown, setShowDropdown] = useState(false);
+  const [hasTriedAuth, setHasTriedAuth] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -30,6 +34,22 @@ export function WalletButton() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Auto-authenticate when wallet connects
+  useEffect(() => {
+    if (connected && publicKey && !isAuthenticated && !isAuthenticating && !hasTriedAuth) {
+      setHasTriedAuth(true);
+      // Small delay to let the wallet UI close first
+      const timer = setTimeout(() => {
+        authenticate();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+    // Reset when disconnected
+    if (!connected) {
+      setHasTriedAuth(false);
+    }
+  }, [connected, publicKey, isAuthenticated, isAuthenticating, hasTriedAuth, authenticate]);
 
   const handleConnect = () => {
     setVisible(true);
@@ -45,15 +65,19 @@ export function WalletButton() {
     router.push("/account");
   };
 
-  // Connecting state
-  if (connecting) {
+  const handleAuthenticate = async () => {
+    await authenticate();
+  };
+
+  // Connecting or authenticating state
+  if (connecting || isAuthenticating) {
     return (
       <button
         disabled
         className="h-9 px-4 text-sm font-medium rounded-lg bg-[var(--accent-muted)] text-[var(--accent-light)] cursor-wait flex items-center gap-2"
       >
         <LoadingSpinner />
-        Connecting...
+        {connecting ? "Connecting..." : "Signing..."}
       </button>
     );
   }
@@ -96,11 +120,32 @@ export function WalletButton() {
 
         {/* Dropdown menu */}
         {showDropdown && (
-          <div className="absolute right-0 top-full mt-2 w-48 bg-[var(--background-secondary)] border border-[var(--border)] rounded-lg shadow-xl overflow-hidden z-50">
+          <div className="absolute right-0 top-full mt-2 w-52 bg-[var(--background-secondary)] border border-[var(--border)] rounded-lg shadow-xl overflow-hidden z-50">
             <div className="px-3 py-2 border-b border-[var(--border)]">
-              <p className="text-xs text-[var(--foreground-muted)]">Connected as</p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-[var(--foreground-muted)]">Connected as</p>
+                {isAuthenticated ? (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--positive)]/20 text-[var(--positive)]">
+                    Verified
+                  </span>
+                ) : (
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--accent)]/20 text-[var(--accent)]">
+                    Not signed
+                  </span>
+                )}
+              </div>
               <p className="text-sm font-mono text-[var(--foreground)] truncate">{address}</p>
             </div>
+            
+            {!isAuthenticated && (
+              <button
+                onClick={handleAuthenticate}
+                className="w-full px-3 py-2.5 flex items-center gap-2 text-sm text-[var(--accent)] hover:bg-[var(--background-tertiary)] transition-colors"
+              >
+                <ShieldIcon className="w-4 h-4" />
+                Sign to Verify
+              </button>
+            )}
             
             <button
               onClick={handleAccount}
@@ -172,6 +217,14 @@ function LogoutIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+    </svg>
+  );
+}
+
+function ShieldIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
     </svg>
   );
 }

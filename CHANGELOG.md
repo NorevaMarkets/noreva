@@ -13,10 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Favorites shown at top of stock list
   - Golden border highlights favorite stocks
   - Stored in database per wallet
-- **Auto-Authentication** - Seamless signature request on first use
-  - No need to visit Account page first
-  - Wallet signature requested when clicking star
+  - No signature required (instant!)
+- **Auto-Authentication on Connect** - One signature for everything
+  - Automatic signature request after wallet connects
   - Once signed, authenticated for 24 hours
+  - Works for Trade History, Account Settings
+  - Dropdown shows "Verified" status
+  - Manual "Sign to Verify" button if declined initially
 
 ### Changed
 - **Swap Reliability** - Improved transaction confirmation
@@ -27,15 +30,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Trade Recording** - No longer auto-prompts for signature
   - Only records if already authenticated
   - Prevents double wallet popups during swaps
+- **Wallet Button** - Shows authentication status
+  - "Verified" badge when authenticated
+  - "Not signed" badge otherwise
+  - Loading state during signing
 
 ### Technical
 - **New Database Table** - `favorites` table with RLS
   - Unique constraint per wallet/symbol
   - Foreign key to users table
 - **New API Route** - `/api/favorites` (GET/POST/DELETE)
-- **New Hook** - `useFavorites` with auto-auth support
+  - No auth required, uses wallet address header
+- **New Hook** - `useFavorites` (no auth needed)
 - **Stock Row** - Added star icon and golden border styling
 - **Stock Table** - Favorites always sorted to top
+- **Wallet Button** - Auto-auth on connect with `useWalletAuth`
 
 ## [0.6.0] - 2025-12-31
 
