@@ -181,12 +181,13 @@ export async function executeSwap(
     console.log("[Swap] lastValidBlockHeight from Jupiter:", lastValidBlockHeight);
     
     // Pre-simulate the transaction to catch errors before signing
-    // This also helps reduce Phantom's "unsafe" warning
+    // Note: Some Token-2022 transactions may fail simulation but work on-chain
     console.log("[Swap] Pre-simulating transaction...");
     try {
       const simulation = await conn.simulateTransaction(transaction, {
         sigVerify: false, // Don't verify signatures (we haven't signed yet)
         commitment: "confirmed",
+        replaceRecentBlockhash: true, // Use fresh blockhash for simulation
       });
       
       if (simulation.value.err) {
@@ -229,16 +230,22 @@ export async function executeSwap(
           };
         }
         
-        // Generic error with code
-        updateStatus("error");
-        return {
-          success: false,
-          error: customCode 
-            ? `Swap failed (error ${customCode}). Try a different amount or token.`
-            : "Transaction would fail. Try a different amount.",
-        };
+        // For liquidity errors, don't block - try anyway as simulation can be wrong
+        if (customCode === "6024" || customCode === "6000" || customCode === "6001") {
+          console.warn("[Swap] Liquidity warning from simulation - attempting swap anyway...");
+          // Continue to signing - let the actual transaction decide
+        } else {
+          // Generic error with code - block the swap
+          updateStatus("error");
+          return {
+            success: false,
+            error: customCode 
+              ? `Swap failed (error ${customCode}). Try a different amount or token.`
+              : "Transaction would fail. Try a different amount.",
+          };
+        }
       }
-      console.log("[Swap] Simulation successful, proceeding to sign...");
+      console.log("[Swap] Simulation passed, proceeding to sign...");
     } catch (simError) {
       console.warn("[Swap] Simulation check failed (continuing anyway):", simError);
       // Continue anyway - simulation can fail for various reasons
