@@ -207,6 +207,13 @@ export async function executeSwap(
             error: "Price changed too much (slippage). Try a smaller amount.",
           };
         }
+        if (customCode === "6024" || customCode === "6000" || customCode === "6001") {
+          updateStatus("error");
+          return {
+            success: false,
+            error: "Not enough liquidity for this token. Try a different stock or use Jupiter directly.",
+          };
+        }
         if (customCode === "1" || simError.includes("InsufficientFunds") || simError.includes("insufficient")) {
           updateStatus("error");
           return {
@@ -227,8 +234,8 @@ export async function executeSwap(
         return {
           success: false,
           error: customCode 
-            ? `Swap failed (error ${customCode}). Try a smaller amount or different token.`
-            : "Transaction would fail. Try a smaller amount.",
+            ? `Swap failed (error ${customCode}). Try a different amount or token.`
+            : "Transaction would fail. Try a different amount.",
         };
       }
       console.log("[Swap] Simulation successful, proceeding to sign...");
