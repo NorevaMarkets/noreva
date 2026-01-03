@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { useAnalystData, useEarningsData, useInsiderData } from "@/hooks";
+import { useAnalystData, useEarningsData, useInsiderData, useTokenStats, useTokenTrades } from "@/hooks";
+import type { TokenTrade } from "@/hooks";
 
 interface LiquidityPanelProps {
   symbol: string;
@@ -49,6 +50,17 @@ export function LiquidityPanel({
   const { data: analystData, isLoading: analystLoading } = useAnalystData(symbol);
   const { data: earningsData, isLoading: earningsLoading } = useEarningsData(symbol);
   const { data: insiderData, isLoading: insiderLoading } = useInsiderData(symbol);
+  
+  // Moralis data hooks
+  const cleanMint = mintAddress && mintAddress !== "N/A" 
+    ? (mintAddress.startsWith("svm:") ? mintAddress.slice(4) : mintAddress)
+    : undefined;
+  const { stats: tokenStats, isLoading: statsLoading } = useTokenStats(cleanMint);
+  const { trades: recentTrades, isLoading: tradesLoading } = useTokenTrades(cleanMint, { 
+    limit: 5, 
+    autoRefresh: true, 
+    refreshInterval: 30000 
+  });
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
@@ -144,8 +156,63 @@ export function LiquidityPanel({
               ${(marketCap / 1_000_000).toFixed(1)}M
             </span>
           </div>
+
+          {/* Holder Stats from Moralis */}
+          {hasSolana && cleanMint && (
+            <div className="flex items-center justify-between py-1.5 px-2 bg-[var(--background-tertiary)] rounded text-[10px]">
+              <span className="text-[var(--foreground-muted)] flex items-center gap-1">
+                <UsersIcon className="w-3 h-3" />
+                Token Holders
+              </span>
+              <span className="font-mono tabular-nums text-[var(--foreground)]">
+                {statsLoading ? (
+                  <span className="text-[var(--foreground-subtle)]">Loading...</span>
+                ) : tokenStats?.holders ? (
+                  tokenStats.holders.toLocaleString()
+                ) : (
+                  <span className="text-[var(--foreground-subtle)]">N/A</span>
+                )}
+              </span>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Recent Trades from Moralis */}
+      {hasSolana && cleanMint && (
+        <div className="mb-3">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-[9px] text-[var(--foreground-subtle)] uppercase flex items-center gap-1">
+              <SwapIcon className="w-3 h-3" />
+              Recent Trades
+            </div>
+            {recentTrades.length > 0 && (
+              <span className="px-1.5 py-0.5 bg-[var(--positive)]/10 text-[var(--positive)] text-[7px] font-medium rounded flex items-center gap-0.5">
+                <span className="w-1 h-1 rounded-full bg-[var(--positive)] animate-pulse" />
+                Live
+              </span>
+            )}
+          </div>
+          
+          {tradesLoading ? (
+            <div className="space-y-1">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-8 bg-[var(--background-tertiary)] rounded animate-pulse" />
+              ))}
+            </div>
+          ) : recentTrades.length > 0 ? (
+            <div className="space-y-1">
+              {recentTrades.map((trade, idx) => (
+                <RecentTradeRow key={trade.signature || idx} trade={trade} />
+              ))}
+            </div>
+          ) : (
+            <div className="py-3 text-center text-[9px] text-[var(--foreground-subtle)] bg-[var(--background-tertiary)] rounded">
+              No recent trades found
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Network Info */}
       <div className="mb-3 pb-3 border-b border-[var(--border)]">
@@ -532,4 +599,78 @@ function CheckIcon({ className }: { className?: string }) {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
     </svg>
   );
+}
+
+function SwapIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+    </svg>
+  );
+}
+
+// Recent Trade Row Component
+interface RecentTradeRowProps {
+  trade: TokenTrade;
+}
+
+function RecentTradeRow({ trade }: RecentTradeRowProps) {
+  const isBuy = trade.type === "buy";
+  const isSell = trade.type === "sell";
+  
+  // Format time ago
+  const timeAgo = formatTimeAgo(trade.blockTime);
+  
+  // Format amount
+  const formattedAmount = trade.tokenAmount >= 1000 
+    ? `${(trade.tokenAmount / 1000).toFixed(1)}K`
+    : trade.tokenAmount >= 1
+      ? trade.tokenAmount.toFixed(2)
+      : trade.tokenAmount.toFixed(4);
+
+  return (
+    <div className="flex items-center justify-between py-1.5 px-2 bg-[var(--background-tertiary)] rounded text-[10px]">
+      <div className="flex items-center gap-2">
+        {/* Trade Type Icon */}
+        <span className={cn(
+          "w-4 h-4 rounded flex items-center justify-center text-[8px] font-bold",
+          isBuy && "bg-[var(--positive)]/20 text-[var(--positive)]",
+          isSell && "bg-[var(--negative)]/20 text-[var(--negative)]",
+          !isBuy && !isSell && "bg-[var(--foreground-subtle)]/20 text-[var(--foreground-subtle)]"
+        )}>
+          {isBuy ? "B" : isSell ? "S" : "T"}
+        </span>
+        
+        {/* Amount */}
+        <div>
+          <span className="font-mono text-[var(--foreground)]">
+            {formattedAmount}
+          </span>
+          {trade.usdValue > 0 && (
+            <span className="text-[var(--foreground-subtle)] ml-1">
+              (${trade.usdValue >= 1000 
+                ? `${(trade.usdValue / 1000).toFixed(1)}K` 
+                : trade.usdValue.toFixed(0)})
+            </span>
+          )}
+        </div>
+      </div>
+      
+      {/* Time */}
+      <span className="text-[var(--foreground-subtle)]">
+        {timeAgo}
+      </span>
+    </div>
+  );
+}
+
+// Helper function for time formatting
+function formatTimeAgo(timestamp: number): string {
+  const now = Math.floor(Date.now() / 1000);
+  const diff = now - timestamp;
+  
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return `${Math.floor(diff / 86400)}d ago`;
 }
