@@ -2,8 +2,12 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { useNrvaToken } from "@/hooks";
 
 export default function AboutPage() {
+  const { data: tokenData, isLoading: tokenLoading } = useNrvaToken();
+  const mintAddress = process.env.NEXT_PUBLIC_NRVA_TOKEN_MINT;
+
   return (
     <div className="min-h-screen">
       {/* Hero Section - Bold Statement */}
@@ -238,6 +242,193 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* $NRVA Token Section */}
+      {mintAddress && (
+        <section className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-20">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="mb-8">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-full bg-[var(--accent)] flex items-center justify-center">
+                  <img src="/logo.png" alt="NRVA" className="w-6 h-6" />
+                </div>
+                <h2 className="text-3xl lg:text-4xl font-bold text-[var(--foreground)]">
+                  $NRVA Token
+                </h2>
+                <span className="px-2 py-0.5 bg-[var(--accent)]/10 text-[var(--accent)] text-xs font-semibold rounded-full">
+                  LIVE
+                </span>
+              </div>
+              <p className="text-[var(--foreground-muted)]">
+                The native token of the Noreva ecosystem
+              </p>
+            </div>
+
+            <div className="grid lg:grid-cols-4 gap-4 mb-6">
+              {/* Price Card */}
+              <div className="lg:col-span-2 p-6 rounded-2xl bg-gradient-to-br from-[var(--accent)]/10 to-transparent border border-[var(--accent)]/30">
+                <div className="text-sm text-[var(--foreground-muted)] mb-1">Current Price</div>
+                {tokenLoading ? (
+                  <div className="h-10 w-32 bg-[var(--background-tertiary)] rounded animate-pulse" />
+                ) : (
+                  <div className="flex items-baseline gap-3">
+                    <span className="text-4xl font-bold text-[var(--foreground)] font-mono">
+                      ${tokenData?.price.toFixed(6) || "0.00"}
+                    </span>
+                    {tokenData && tokenData.priceChange24h !== 0 && (
+                      <span className={`text-lg font-semibold ${tokenData.priceChange24h >= 0 ? "text-[var(--positive)]" : "text-[var(--negative)]"}`}>
+                        {tokenData.priceChange24h >= 0 ? "+" : ""}{tokenData.priceChange24h.toFixed(2)}%
+                      </span>
+                    )}
+                  </div>
+                )}
+                <div className="text-xs text-[var(--foreground-subtle)] mt-1">24h Change</div>
+              </div>
+
+              {/* Market Cap */}
+              <div className="p-6 rounded-2xl bg-[var(--background-secondary)] border border-[var(--border)]">
+                <div className="text-sm text-[var(--foreground-muted)] mb-1">Market Cap</div>
+                {tokenLoading ? (
+                  <div className="h-8 w-24 bg-[var(--background-tertiary)] rounded animate-pulse" />
+                ) : (
+                  <span className="text-2xl font-bold text-[var(--foreground)] font-mono">
+                    ${formatCompact(tokenData?.marketCap || 0)}
+                  </span>
+                )}
+              </div>
+
+              {/* Liquidity */}
+              <div className="p-6 rounded-2xl bg-[var(--background-secondary)] border border-[var(--border)]">
+                <div className="text-sm text-[var(--foreground-muted)] mb-1">Liquidity</div>
+                {tokenLoading ? (
+                  <div className="h-8 w-24 bg-[var(--background-tertiary)] rounded animate-pulse" />
+                ) : (
+                  <span className="text-2xl font-bold text-[var(--foreground)] font-mono">
+                    ${formatCompact(tokenData?.liquidity || 0)}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="grid lg:grid-cols-5 gap-4 mb-6">
+              {/* Total Supply */}
+              <div className="p-5 rounded-xl bg-[var(--background-secondary)] border border-[var(--border)]">
+                <div className="text-xs text-[var(--foreground-muted)] mb-1">Total Supply</div>
+                {tokenLoading ? (
+                  <div className="h-6 w-20 bg-[var(--background-tertiary)] rounded animate-pulse" />
+                ) : (
+                  <span className="text-xl font-bold text-[var(--foreground)] font-mono">
+                    {formatCompact(tokenData?.supply || 0)}
+                  </span>
+                )}
+              </div>
+
+              {/* 24h Volume */}
+              <div className="p-5 rounded-xl bg-[var(--background-secondary)] border border-[var(--border)]">
+                <div className="text-xs text-[var(--foreground-muted)] mb-1">24h Volume</div>
+                {tokenLoading ? (
+                  <div className="h-6 w-20 bg-[var(--background-tertiary)] rounded animate-pulse" />
+                ) : (
+                  <span className="text-xl font-bold text-[var(--foreground)] font-mono">
+                    ${formatCompact(tokenData?.volume24h || 0)}
+                  </span>
+                )}
+              </div>
+
+              {/* Holders - only show if data available */}
+              {(tokenLoading || (tokenData?.holders && tokenData.holders > 0)) && (
+                <div className="p-5 rounded-xl bg-[var(--background-secondary)] border border-[var(--border)]">
+                  <div className="text-xs text-[var(--foreground-muted)] mb-1">Holders</div>
+                  {tokenLoading ? (
+                    <div className="h-6 w-16 bg-[var(--background-tertiary)] rounded animate-pulse" />
+                  ) : (
+                    <span className="text-xl font-bold text-[var(--foreground)] font-mono">
+                      {tokenData?.holders?.toLocaleString()}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* 24h Buys */}
+              <div className="p-5 rounded-xl bg-[var(--background-secondary)] border border-[var(--border)]">
+                <div className="text-xs text-[var(--foreground-muted)] mb-1">24h Buys</div>
+                {tokenLoading ? (
+                  <div className="h-6 w-12 bg-[var(--background-tertiary)] rounded animate-pulse" />
+                ) : (
+                  <span className="text-xl font-bold text-[var(--positive)] font-mono">
+                    {tokenData?.txns24h.buys.toLocaleString() || "0"}
+                  </span>
+                )}
+              </div>
+
+              {/* 24h Sells */}
+              <div className="p-5 rounded-xl bg-[var(--background-secondary)] border border-[var(--border)]">
+                <div className="text-xs text-[var(--foreground-muted)] mb-1">24h Sells</div>
+                {tokenLoading ? (
+                  <div className="h-6 w-12 bg-[var(--background-tertiary)] rounded animate-pulse" />
+                ) : (
+                  <span className="text-xl font-bold text-[var(--negative)] font-mono">
+                    {tokenData?.txns24h.sells.toLocaleString() || "0"}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Contract & Links */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl bg-[var(--background-tertiary)] border border-[var(--border)]">
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-[var(--foreground-muted)]">Contract:</span>
+                <code className="text-xs font-mono text-[var(--foreground)] bg-[var(--background-secondary)] px-2 py-1 rounded">
+                  {mintAddress.slice(0, 8)}...{mintAddress.slice(-8)}
+                </code>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(mintAddress);
+                  }}
+                  className="text-[var(--accent)] hover:text-[var(--accent-light)] transition-colors"
+                  title="Copy address"
+                >
+                  <CopyIcon className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="flex items-center gap-3">
+                <a
+                  href={`https://dexscreener.com/solana/${mintAddress}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[var(--foreground)] bg-[var(--background-secondary)] rounded-lg hover:bg-[var(--background-elevated)] transition-colors"
+                >
+                  <ChartLineIcon className="w-3.5 h-3.5" />
+                  DexScreener
+                </a>
+                <a
+                  href={`https://solscan.io/token/${mintAddress}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[var(--foreground)] bg-[var(--background-secondary)] rounded-lg hover:bg-[var(--background-elevated)] transition-colors"
+                >
+                  <ExternalLinkIcon className="w-3.5 h-3.5" />
+                  Solscan
+                </a>
+                <a
+                  href={`https://jup.ag/swap/SOL-${mintAddress}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[var(--background)] bg-[var(--accent)] rounded-lg hover:bg-[var(--accent-light)] transition-colors"
+                >
+                  <SwapIcon className="w-3.5 h-3.5" />
+                  Buy on Jupiter
+                </a>
+              </div>
+            </div>
+          </motion.div>
+        </section>
+      )}
+
       {/* Token Providers - With Background */}
       <section className="relative overflow-hidden">
         {/* Background Image */}
@@ -413,4 +604,37 @@ function SpreadIcon({ className }: { className?: string }) {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
     </svg>
   );
+}
+
+function CopyIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+    </svg>
+  );
+}
+
+function ChartLineIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+    </svg>
+  );
+}
+
+function ExternalLinkIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+    </svg>
+  );
+}
+
+// Helper function to format large numbers
+function formatCompact(num: number): string {
+  if (num === 0) return "0";
+  if (num >= 1_000_000_000) return (num / 1_000_000_000).toFixed(2) + "B";
+  if (num >= 1_000_000) return (num / 1_000_000).toFixed(2) + "M";
+  if (num >= 1_000) return (num / 1_000).toFixed(2) + "K";
+  return num.toFixed(2);
 }

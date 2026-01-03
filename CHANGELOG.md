@@ -5,6 +5,39 @@ All notable changes to Noreva will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.1] - 2026-01-03
+
+### Added
+- **$NRVA Token Section** - Native token display on About page
+  - Real-time price, market cap, liquidity from Helius + Jupiter
+  - Total supply and holder count from Helius DAS API
+  - 24h volume, buys/sells from DexScreener
+  - Copy contract address button
+  - Links to DexScreener, Solscan, Jupiter Swap
+- **Token API Route** - New endpoint `/api/token/nrva`
+  - Helius as primary data source (better rate limits)
+  - Jupiter Price API for real-time pricing
+  - DexScreener fallback for volume and transaction data
+  - Automatic Helius API key extraction from RPC URL
+- **useNrvaToken Hook** - React hook for token data with auto-refresh
+
+### Fixed
+- **Recent Trades Limit** - Fixed pageSize parameter for Moralis API (was showing 100+ trades instead of 10)
+
+### Changed
+- **Token Data Sources** - Prioritized Helius over DexScreener for rate limit optimization
+
+### Technical
+- New API: `src/app/api/token/nrva/route.ts`
+- New Hook: `src/hooks/use-nrva-token.ts`
+- Updated: `src/app/about/page.tsx` - Token section with live data
+- Updated: `src/app/api/token/trades/route.ts` - Fixed `pageSize` parameter
+
+### Environment Variables
+- `NEXT_PUBLIC_NRVA_TOKEN_MINT` - Contract address for $NRVA token (required for token section)
+
+---
+
 ## [0.14.0] - 2026-01-03
 
 ### Added

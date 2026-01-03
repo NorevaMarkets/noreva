@@ -76,9 +76,9 @@ export async function GET(request: Request) {
     const cleanMint = mint.startsWith("svm:") ? mint.slice(4) : mint;
     console.log("[TokenTrades] Fetching trades for:", cleanMint);
 
-    // Try swaps endpoint first
+    // Try swaps endpoint first (Moralis uses pageSize, not limit)
     const swapsResponse = await fetch(
-      `${MORALIS_SOLANA_API}/${cleanMint}/swaps?limit=${limit}`,
+      `${MORALIS_SOLANA_API}/${cleanMint}/swaps?pageSize=${limit}`,
       {
         headers: {
           "X-API-Key": MORALIS_API_KEY,
@@ -152,7 +152,7 @@ export async function GET(request: Request) {
     // Fallback to transfers
     console.log("[TokenTrades] Trying transfers endpoint...");
     const transfersResponse = await fetch(
-      `${MORALIS_SOLANA_API}/${cleanMint}/transfers?limit=${limit}`,
+      `${MORALIS_SOLANA_API}/${cleanMint}/transfers?pageSize=${limit}`,
       {
         headers: {
           "X-API-Key": MORALIS_API_KEY,
