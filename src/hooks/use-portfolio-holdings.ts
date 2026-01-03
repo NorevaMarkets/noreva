@@ -3,6 +3,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 
+// Custom event name for auth state changes (must match use-wallet-auth.ts)
+const AUTH_STATE_CHANGED_EVENT = "noreva_auth_state_changed";
+
 interface StockHolding {
   symbol: string;
   underlying: string;
@@ -69,6 +72,19 @@ export function usePortfolioHoldings(): PortfolioData {
     // Refresh every 60 seconds
     const interval = setInterval(fetchHoldings, 60000);
     return () => clearInterval(interval);
+  }, [fetchHoldings]);
+
+  // Listen for auth state changes and refetch
+  useEffect(() => {
+    const handleAuthChange = () => {
+      console.log("[Portfolio] Auth state changed, refetching holdings...");
+      fetchHoldings();
+    };
+
+    window.addEventListener(AUTH_STATE_CHANGED_EVENT, handleAuthChange);
+    return () => {
+      window.removeEventListener(AUTH_STATE_CHANGED_EVENT, handleAuthChange);
+    };
   }, [fetchHoldings]);
 
   return {
