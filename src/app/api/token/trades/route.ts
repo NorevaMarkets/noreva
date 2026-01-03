@@ -6,11 +6,44 @@ const MORALIS_SOLANA_API = "https://solana-gateway.moralis.io/token/mainnet";
 interface TokenSwap {
   signature: string;
   blockTime: number;
-  type: "buy" | "sell";
+  type: "buy" | "sell" | "transfer";
   tokenAmount: number;
   tokenSymbol: string;
   usdValue: number;
   walletAddress: string;
+}
+
+/**
+ * Parse timestamp from various formats
+ */
+function parseTimestamp(value: any): number {
+  if (!value) return Math.floor(Date.now() / 1000);
+  
+  // If it's already a reasonable Unix timestamp (seconds)
+  if (typeof value === "number" && value > 1000000000 && value < 10000000000) {
+    return value;
+  }
+  
+  // If it's a millisecond timestamp
+  if (typeof value === "number" && value > 10000000000) {
+    return Math.floor(value / 1000);
+  }
+  
+  // If it's a string, try to parse it
+  if (typeof value === "string") {
+    // ISO date string
+    const parsed = Date.parse(value);
+    if (!isNaN(parsed)) {
+      return Math.floor(parsed / 1000);
+    }
+    // Numeric string
+    const num = parseInt(value, 10);
+    if (!isNaN(num)) {
+      return num > 10000000000 ? Math.floor(num / 1000) : num;
+    }
+  }
+  
+  return Math.floor(Date.now() / 1000);
 }
 
 /**
@@ -31,6 +64,7 @@ export async function GET(request: Request) {
   }
 
   if (!MORALIS_API_KEY) {
+    console.error("[TokenTrades] MORALIS_API_KEY not configured");
     return NextResponse.json(
       { success: false, error: "Moralis API not configured" },
       { status: 503 }
@@ -40,8 +74,9 @@ export async function GET(request: Request) {
   try {
     // Clean mint address
     const cleanMint = mint.startsWith("svm:") ? mint.slice(4) : mint;
+    console.log("[TokenTrades] Fetching trades for:", cleanMint);
 
-    // Fetch token swaps from Moralis
+    // Try swaps endpoint first
     const swapsResponse = await fetch(
       `${MORALIS_SOLANA_API}/${cleanMint}/swaps?limit=${limit}`,
       {
@@ -52,73 +87,107 @@ export async function GET(request: Request) {
       }
     );
 
-    if (!swapsResponse.ok) {
-      // If swaps endpoint fails, try transfers as fallback
-      console.log("[TokenTrades] Swaps endpoint failed, trying transfers...");
-      
-      const transfersResponse = await fetch(
-        `${MORALIS_SOLANA_API}/${cleanMint}/transfers?limit=${limit}`,
-        {
-          headers: {
-            "X-API-Key": MORALIS_API_KEY,
-            "Accept": "application/json",
-          },
-        }
-      );
+    if (swapsResponse.ok) {
+      const swapsData = await swapsResponse.json();
+      console.log("[TokenTrades] Swaps response sample:", JSON.stringify(swapsData).slice(0, 500));
 
-      if (!transfersResponse.ok) {
-        return NextResponse.json(
-          { success: false, error: "Failed to fetch token trades" },
-          { status: transfersResponse.status }
-        );
+      // Handle different response structures
+      const swapsArray = swapsData.result || swapsData.swaps || (Array.isArray(swapsData) ? swapsData : []);
+
+      if (swapsArray.length > 0) {
+        // Log first swap to understand structure
+        console.log("[TokenTrades] First swap keys:", Object.keys(swapsArray[0]));
+        console.log("[TokenTrades] First swap data:", JSON.stringify(swapsArray[0]).slice(0, 300));
+
+        const trades: TokenSwap[] = swapsArray.slice(0, limit).map((swap: any) => {
+          // Determine if it's a buy or sell
+          const isBuy = swap.tokenOutMint === cleanMint 
+            || swap.bought?.mint === cleanMint
+            || swap.side === "buy"
+            || swap.transactionType === "buy";
+          
+          // Get amount - try various field names
+          const amount = parseFloat(
+            swap.tokenOutAmount 
+            || swap.bought?.amount 
+            || swap.tokenInAmount 
+            || swap.sold?.amount 
+            || swap.amount
+            || swap.baseAmount
+            || "0"
+          );
+
+          return {
+            signature: swap.signature || swap.transactionHash || swap.txHash || swap.hash || "",
+            blockTime: parseTimestamp(swap.blockTime || swap.blockTimestamp || swap.timestamp || swap.time),
+            type: isBuy ? "buy" : "sell",
+            tokenAmount: amount,
+            tokenSymbol: swap.tokenOutSymbol || swap.tokenInSymbol || swap.symbol || "",
+            usdValue: parseFloat(swap.usdValue || swap.valueUsd || swap.totalValueUsd || "0"),
+            walletAddress: swap.walletAddress || swap.owner || swap.maker || swap.user || "",
+          };
+        });
+
+        return NextResponse.json({
+          success: true,
+          trades,
+          count: trades.length,
+          source: "swaps",
+        });
       }
-
-      const transfersData = await transfersResponse.json();
-      
-      // Transform transfers to trade-like format
-      const trades = (transfersData.result || transfersData || []).slice(0, limit).map((transfer: any) => ({
-        signature: transfer.signature || transfer.transactionHash || "",
-        blockTime: transfer.blockTime || Math.floor(Date.now() / 1000),
-        type: "transfer" as const,
-        tokenAmount: parseFloat(transfer.amount) || 0,
-        tokenSymbol: transfer.symbol || "",
-        usdValue: 0, // Transfers don't have USD value
-        walletAddress: transfer.toAddress || transfer.to || "",
-        fromAddress: transfer.fromAddress || transfer.from || "",
-      }));
-
-      return NextResponse.json({
-        success: true,
-        trades,
-        count: trades.length,
-        source: "transfers",
-      });
+    } else {
+      console.log("[TokenTrades] Swaps endpoint returned:", swapsResponse.status);
     }
 
-    const swapsData = await swapsResponse.json();
+    // Fallback to transfers
+    console.log("[TokenTrades] Trying transfers endpoint...");
+    const transfersResponse = await fetch(
+      `${MORALIS_SOLANA_API}/${cleanMint}/transfers?limit=${limit}`,
+      {
+        headers: {
+          "X-API-Key": MORALIS_API_KEY,
+          "Accept": "application/json",
+        },
+      }
+    );
 
-    // Transform swaps to our format
-    const trades: TokenSwap[] = (swapsData.result || swapsData || []).slice(0, limit).map((swap: any) => {
-      // Determine if it's a buy or sell based on the swap direction
-      const isBuy = swap.tokenOutMint === cleanMint || swap.bought?.mint === cleanMint;
-      
-      return {
-        signature: swap.signature || swap.transactionHash || "",
-        blockTime: swap.blockTime || swap.blockTimestamp || Math.floor(Date.now() / 1000),
-        type: isBuy ? "buy" : "sell",
-        tokenAmount: parseFloat(isBuy ? (swap.tokenOutAmount || swap.bought?.amount || 0) : (swap.tokenInAmount || swap.sold?.amount || 0)),
-        tokenSymbol: swap.tokenOutSymbol || swap.tokenInSymbol || "",
-        usdValue: parseFloat(swap.usdValue || swap.valueUsd || 0),
-        walletAddress: swap.walletAddress || swap.owner || "",
-      };
-    });
+    if (transfersResponse.ok) {
+      const transfersData = await transfersResponse.json();
+      console.log("[TokenTrades] Transfers response sample:", JSON.stringify(transfersData).slice(0, 500));
 
+      const transfersArray = transfersData.result || transfersData.transfers || (Array.isArray(transfersData) ? transfersData : []);
+
+      if (transfersArray.length > 0) {
+        console.log("[TokenTrades] First transfer keys:", Object.keys(transfersArray[0]));
+
+        const trades: TokenSwap[] = transfersArray.slice(0, limit).map((transfer: any) => ({
+          signature: transfer.signature || transfer.transactionHash || transfer.txHash || "",
+          blockTime: parseTimestamp(transfer.blockTime || transfer.blockTimestamp || transfer.timestamp),
+          type: "transfer" as const,
+          tokenAmount: parseFloat(transfer.amount || transfer.value || "0"),
+          tokenSymbol: transfer.symbol || "",
+          usdValue: parseFloat(transfer.usdValue || "0"),
+          walletAddress: transfer.toAddress || transfer.to || transfer.destination || "",
+        }));
+
+        return NextResponse.json({
+          success: true,
+          trades,
+          count: trades.length,
+          source: "transfers",
+        });
+      }
+    }
+
+    // No data found
+    console.log("[TokenTrades] No trades or transfers found");
     return NextResponse.json({
       success: true,
-      trades,
-      count: trades.length,
-      source: "swaps",
+      trades: [],
+      count: 0,
+      source: "none",
     });
+
   } catch (error) {
     console.error("[TokenTrades] Error:", error);
     return NextResponse.json(
@@ -127,4 +196,3 @@ export async function GET(request: Request) {
     );
   }
 }
-

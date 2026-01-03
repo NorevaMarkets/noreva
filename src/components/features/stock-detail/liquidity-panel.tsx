@@ -666,11 +666,23 @@ function RecentTradeRow({ trade }: RecentTradeRowProps) {
 
 // Helper function for time formatting
 function formatTimeAgo(timestamp: number): string {
-  const now = Math.floor(Date.now() / 1000);
-  const diff = now - timestamp;
+  // Handle invalid timestamps
+  if (!timestamp || isNaN(timestamp) || timestamp <= 0) {
+    return "just now";
+  }
   
-  if (diff < 60) return `${diff}s ago`;
+  const now = Math.floor(Date.now() / 1000);
+  
+  // If timestamp is in milliseconds, convert to seconds
+  const ts = timestamp > 10000000000 ? Math.floor(timestamp / 1000) : timestamp;
+  
+  const diff = now - ts;
+  
+  // Handle future timestamps or very small differences
+  if (diff < 0 || diff < 5) return "just now";
+  if (diff < 60) return `${Math.floor(diff)}s ago`;
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return `${Math.floor(diff / 86400)}d ago`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+  return `${Math.floor(diff / 604800)}w ago`;
 }
