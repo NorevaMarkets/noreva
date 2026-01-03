@@ -5,6 +5,49 @@ All notable changes to Noreva will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.0] - 2026-01-03
+
+### Added
+- **Lightweight Charts** - Custom candlestick charts powered by Moralis OHLCV data
+  - Full color customization matching Noreva dark theme
+  - Green/red candles with matching wicks
+  - Custom background, grid lines, and crosshair colors
+  - Volume bars with transparency
+  - "Charting by TradingView" attribution removed
+- **Multiple Timeframes** - 8 timeframe options for charts
+  - 5M, 15M, 30M, 1H, 4H, 1D, 1W, 1MO
+  - Weekly and Monthly use aggregated daily data
+  - Smart data limits per timeframe
+- **Chart Source Toggle** - Switch between Token Price (Moralis) and Stock Price (TradingView)
+- **Mobile-Optimized Trade Page** - Complete mobile redesign
+  - Stock Picker dropdown with search (replaces sidebar)
+  - Chart / Info & Trade tab navigation
+  - Fullscreen chart view on mobile
+  - Scrollable info panel with fixed trading button
+  - Desktop layout unchanged
+- **OHLCV API Route** - New endpoint for candlestick data
+  - `GET /api/token/ohlcv?symbol=TSLA&timeframe=1d&limit=100`
+  - Fetches from Moralis with mock data fallback
+  - Supports all 8 timeframes
+
+### Changed
+- **Recent Trades** - Now shows last 10 trades (was 5)
+- **Chart Component** - Replaced TradingView embed widget with Lightweight Charts for Token Price
+- **TradingView Widget** - Still used for Stock Price view with custom dark theme colors
+
+### Removed
+- **Source Labels** - Removed "Moralis" and "TradingView" labels from chart header
+- **Backed Finance Label** - Removed from Market Data header
+- **TradingView Attribution** - Hidden via `attributionLogo: false`
+
+### Technical
+- New Dependency: `lightweight-charts` (TradingView open-source library)
+- New API: `src/app/api/token/ohlcv/route.ts` - Moralis OHLCV endpoint
+- New Component: `src/components/features/stock-detail/lightweight-chart.tsx`
+- Updated: `src/components/features/stock-detail/trading-chart.tsx` - Source toggle + timeframes
+- Updated: `src/app/trade/[symbol]/page.tsx` - Separate mobile and desktop layouts
+- Updated: `src/components/features/stock-detail/liquidity-panel.tsx` - 10 trades limit
+
 ## [0.13.0] - 2026-01-03
 
 ### Added

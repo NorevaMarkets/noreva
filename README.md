@@ -12,9 +12,12 @@ Noreva is a web application for tracking and trading tokenized stocks on the Sol
 - **Real-time Stock Tracking** - Monitor tokenized stocks like AAPLx, TSLAx, NVDAx and more
 - **Spread Analysis** - See premium/discount between token and stock prices
 - **24/7 Trading** - Trade via Jupiter DEX when traditional markets are closed
-- **TradingView Charts** - Professional charting (responsive on mobile!)
+- **Lightweight Charts** - Custom candlestick charts with Moralis OHLCV data
+- **Multiple Timeframes** - 5M, 15M, 30M, 1H, 4H, 1D, 1W, 1MO chart intervals
+- **TradingView Fallback** - Stock price charts via TradingView widget
 - **Trade History** - All your trades saved to database and viewable in portfolio
 - **Stock Favorites** - Mark favorite stocks with a star, shown at top of list
+- **Mobile-Optimized Trading** - Stock picker dropdown, tab navigation, fullscreen charts
 
 ### Trading Dashboard (NEW!)
 - **PnL Overview** - Track your realized profit and loss with visual indicators
@@ -39,7 +42,7 @@ Noreva is a web application for tracking and trading tokenized stocks on the Sol
 ### Technical
 - **Beautiful Dark UI** - Premium gold/amber theme optimized for trading
 - **Fully Responsive** - Optimized for desktop, tablet, and mobile
-- **Mobile Charts** - TradingView charts adapt to smaller screens
+- **Mobile Charts** - Fullscreen Lightweight Charts with touch-friendly controls
 - **Local Stock Logos** - Fast loading with locally cached logos
 - **Smooth Animations** - Page transitions and micro-interactions with Framer Motion
 - **Stagger Effects** - Stock list items animate in sequence for polished feel
@@ -108,7 +111,7 @@ See `.env.example` for a complete template.
 - **Database**: [Supabase](https://supabase.com/) (PostgreSQL + Row Level Security)
 - **Blockchain**: Solana Web3.js
 - **Wallet**: Solana Wallet Adapter (Phantom, Solflare)
-- **Charts**: TradingView Lightweight Charts
+- **Charts**: [Lightweight Charts](https://www.tradingview.com/lightweight-charts/) + TradingView Widget
 - **Animations**: [Framer Motion](https://www.framer.com/motion/)
 - **Authentication**: Wallet Signature Verification (nacl/tweetnacl)
 - **Blockchain Data**: [Moralis](https://moralis.io/) + [Helius](https://helius.dev/)

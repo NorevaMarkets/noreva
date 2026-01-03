@@ -56,7 +56,7 @@ export function LiquidityPanel({
     ? (mintAddress.startsWith("svm:") ? mintAddress.slice(4) : mintAddress)
     : undefined;
   const { trades: recentTrades, isLoading: tradesLoading } = useTokenTrades(cleanMint, { 
-    limit: 5, 
+    limit: 10, 
     autoRefresh: true, 
     refreshInterval: 30000 
   });
@@ -80,19 +80,13 @@ export function LiquidityPanel({
   return (
     <div className="p-3 flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--foreground-muted)]">
-            Market Data
-          </div>
-          <span className="px-1.5 py-0.5 bg-[var(--positive)]/10 text-[var(--positive)] text-[8px] font-medium rounded">
-            Live
-          </span>
+      <div className="flex items-center gap-2 mb-3">
+        <div className="text-[10px] font-semibold uppercase tracking-wider text-[var(--foreground-muted)]">
+          Market Data
         </div>
-        <div className="flex items-center gap-1 text-[9px] text-[var(--foreground-subtle)]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[var(--positive)] animate-pulse" />
-          Backed Finance
-        </div>
+        <span className="px-1.5 py-0.5 bg-[var(--positive)]/10 text-[var(--positive)] text-[8px] font-medium rounded">
+          Live
+        </span>
       </div>
 
       {/* Price Comparison Card */}
@@ -182,7 +176,7 @@ export function LiquidityPanel({
             </div>
           ) : recentTrades.length > 0 ? (
             <div className="space-y-1">
-              {recentTrades.map((trade, idx) => (
+              {recentTrades.slice(0, 10).map((trade, idx) => (
                 <RecentTradeRow key={trade.signature || idx} trade={trade} />
               ))}
             </div>

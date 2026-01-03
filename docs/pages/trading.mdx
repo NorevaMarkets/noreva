@@ -6,11 +6,34 @@ Learn how to trade tokenized stocks on Noreva.
 
 Noreva features a dedicated **Trading Terminal** at [noreva.markets/trade](https://noreva.markets/trade):
 
+### Desktop
 - **Stock Sidebar** - All available stocks in a collapsible left panel
 - **Quick Search** - Filter stocks by symbol or name
 - **Favorites First** - Your starred stocks appear at the top
 - **One-Click Switching** - Instantly switch between stocks without leaving the page
 - **Collapse Mode** - Minimize sidebar to icons for more chart space
+
+### Mobile
+- **Stock Picker Dropdown** - Tap to select any stock with search
+- **Chart / Info & Trade Tabs** - Switch between fullscreen chart and info panel
+- **Fullscreen Charts** - Optimized for mobile viewing
+- **Fixed Trading Button** - Always accessible at the bottom
+
+## Charts
+
+Noreva uses **Lightweight Charts** (by TradingView) for custom candlestick charts:
+
+### Chart Features
+- **Token Price** - OHLCV data from Moralis API with Noreva colors
+- **Stock Price** - TradingView widget for underlying stock
+- **8 Timeframes** - 5M, 15M, 30M, 1H, 4H, 1D, 1W, 1MO
+- **Volume Bars** - Colored by candle direction
+- **Custom Theme** - Dark background, gold accent, green/red candles
+
+### Switching Chart Source
+Click **Token Price** or **Stock Price** above the chart:
+- **Token Price** - Shows tokenized stock price on Solana (Lightweight Charts)
+- **Stock Price** - Shows underlying stock price (TradingView widget)
 
 ## Understanding Spreads
 
@@ -53,10 +76,10 @@ Before trading, check the **Market** tab for important data:
 - Recent insider buy/sell transactions
 - Insider sentiment score
 
-### Recent Trades (NEW!)
+### Recent Trades
 - Live trading activity via Moralis API
-- Shows last 5 trades for each token
-- Buy/Sell indicators with amounts
+- Shows last 10 trades for each token
+- Buy/Sell indicators with amounts and USD values
 - Auto-refreshes every 30 seconds
 
 ### News Feed
@@ -111,11 +134,13 @@ The default slippage is set to **2.5%** for tokenized stocks. This is higher tha
 
 ## Mobile Trading
 
-Noreva is fully responsive and works great on mobile devices:
+Noreva is fully optimized for mobile trading:
 
-- **Optimized Charts** - TradingView charts adapt to smaller screens
-- **Simplified UI** - Hidden toolbars on mobile for cleaner look
-- **Touch-friendly** - All buttons and inputs sized for touch
+- **Stock Picker** - Dropdown with search replaces sidebar
+- **Tab Navigation** - Switch between Chart and Info & Trade
+- **Fullscreen Charts** - Lightweight Charts fill the screen
+- **Touch-friendly** - Large buttons and inputs for easy tapping
+- **Fixed Trading Panel** - Always accessible at the bottom
 - **Same Features** - Full trading functionality on any device
 
 ## Trading Tips

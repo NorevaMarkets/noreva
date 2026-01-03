@@ -63,6 +63,19 @@ function TradingViewWidgetComponent({
     // Clean symbol for TradingView (remove b prefix, x suffix)
     const cleanSymbol = cleanStockSymbol(symbol);
 
+    // Noreva Design System Colors
+    const norevaColors = {
+      background: "#121416",
+      backgroundSecondary: "#161a1d",
+      positive: "#4ade80",      // Green for up
+      negative: "#f87171",      // Red for down
+      accent: "#c4a84b",        // Gold accent
+      textMuted: "#9ca3af",
+      textSubtle: "#6b7280",
+      border: "#2a2f33",
+      gridLine: "rgba(42, 47, 51, 0.5)",
+    };
+
     // Mobile-optimized settings: hide toolbars for more chart space
     script.innerHTML = JSON.stringify({
       autosize: isMobile ? false : autosize,
@@ -75,8 +88,9 @@ function TradingViewWidgetComponent({
       style: "1", // Candlestick
       locale: "en",
       enable_publishing: false,
-      backgroundColor: theme === "dark" ? "rgba(20, 20, 24, 1)" : "rgba(255, 255, 255, 1)",
-      gridColor: theme === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.05)",
+      // Noreva Background Colors
+      backgroundColor: norevaColors.background,
+      gridColor: norevaColors.gridLine,
       // Mobile: hide toolbars for cleaner look
       hide_top_toolbar: isMobile,
       hide_side_toolbar: isMobile,
@@ -86,6 +100,61 @@ function TradingViewWidgetComponent({
       hide_volume: isMobile, // Hide volume on mobile for cleaner look
       allow_symbol_change: !isMobile, // Disable symbol change on mobile
       support_host: "https://www.tradingview.com",
+      // Noreva Custom Color Overrides
+      overrides: {
+        // Candlestick colors
+        "mainSeriesProperties.candleStyle.upColor": norevaColors.positive,
+        "mainSeriesProperties.candleStyle.downColor": norevaColors.negative,
+        "mainSeriesProperties.candleStyle.borderUpColor": norevaColors.positive,
+        "mainSeriesProperties.candleStyle.borderDownColor": norevaColors.negative,
+        "mainSeriesProperties.candleStyle.wickUpColor": norevaColors.positive,
+        "mainSeriesProperties.candleStyle.wickDownColor": norevaColors.negative,
+        // Hollow candles (when close > open but price down)
+        "mainSeriesProperties.hollowCandleStyle.upColor": norevaColors.positive,
+        "mainSeriesProperties.hollowCandleStyle.downColor": norevaColors.negative,
+        "mainSeriesProperties.hollowCandleStyle.borderUpColor": norevaColors.positive,
+        "mainSeriesProperties.hollowCandleStyle.borderDownColor": norevaColors.negative,
+        "mainSeriesProperties.hollowCandleStyle.wickUpColor": norevaColors.positive,
+        "mainSeriesProperties.hollowCandleStyle.wickDownColor": norevaColors.negative,
+        // Bar chart colors
+        "mainSeriesProperties.barStyle.upColor": norevaColors.positive,
+        "mainSeriesProperties.barStyle.downColor": norevaColors.negative,
+        // Line chart color
+        "mainSeriesProperties.lineStyle.color": norevaColors.accent,
+        // Area chart colors
+        "mainSeriesProperties.areaStyle.linecolor": norevaColors.accent,
+        "mainSeriesProperties.areaStyle.color1": "rgba(196, 168, 75, 0.3)",
+        "mainSeriesProperties.areaStyle.color2": "rgba(196, 168, 75, 0.05)",
+        // Baseline chart
+        "mainSeriesProperties.baselineStyle.topLineColor": norevaColors.positive,
+        "mainSeriesProperties.baselineStyle.bottomLineColor": norevaColors.negative,
+        // Pane (chart area) background
+        "paneProperties.background": norevaColors.background,
+        "paneProperties.backgroundType": "solid",
+        // Grid lines
+        "paneProperties.vertGridProperties.color": norevaColors.gridLine,
+        "paneProperties.horzGridProperties.color": norevaColors.gridLine,
+        // Crosshair
+        "paneProperties.crossHairProperties.color": norevaColors.textMuted,
+        // Scales (axes)
+        "scalesProperties.backgroundColor": norevaColors.background,
+        "scalesProperties.textColor": norevaColors.textMuted,
+        "scalesProperties.lineColor": norevaColors.border,
+        // Legend text
+        "paneProperties.legendProperties.showStudyArguments": false,
+        "paneProperties.legendProperties.showStudyTitles": false,
+        "paneProperties.legendProperties.showStudyValues": true,
+        "paneProperties.legendProperties.showSeriesTitle": true,
+        "paneProperties.legendProperties.showSeriesOHLC": true,
+      },
+      // Volume indicator colors
+      studies_overrides: {
+        "volume.volume.color.0": norevaColors.negative,
+        "volume.volume.color.1": norevaColors.positive,
+        "volume.volume.transparency": 50,
+        "volume.volume ma.color": norevaColors.accent,
+        "volume.volume ma.transparency": 70,
+      },
     });
 
     widgetContainer.appendChild(script);

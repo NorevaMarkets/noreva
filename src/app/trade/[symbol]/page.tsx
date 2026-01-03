@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { formatUsd } from "@/lib/utils/format";
 import { TradingChart } from "@/components/features/stock-detail/trading-chart";
@@ -21,6 +21,9 @@ import type { StockWithPrice } from "@/types";
 // Tab types for the right panel
 type RightPanelTab = "market" | "fundamentals" | "news";
 
+// Mobile tab for switching between chart and info
+type MobileView = "chart" | "info";
+
 export default function TradePage() {
   const params = useParams();
   const router = useRouter();
@@ -28,6 +31,20 @@ export default function TradePage() {
   const [activeTab, setActiveTab] = useState<RightPanelTab>("market");
   const [searchQuery, setSearchQuery] = useState("");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileView, setMobileView] = useState<MobileView>("chart");
+  const [showStockPicker, setShowStockPicker] = useState(false);
+  const stockPickerRef = useRef<HTMLDivElement>(null);
+
+  // Close stock picker on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (stockPickerRef.current && !stockPickerRef.current.contains(event.target as Node)) {
+        setShowStockPicker(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Fetch real stock data
   const { stocks, isLoading } = useRealStocks({
@@ -141,198 +158,390 @@ export default function TradePage() {
   const { price, underlying } = stock;
 
   return (
-    <div className="h-[calc(100vh-64px)] flex overflow-hidden">
-      {/* Left Sidebar - Stock List */}
-      <div
-        className={cn(
-          "flex flex-col bg-[var(--background-secondary)] border-r border-[var(--border)] transition-all duration-300",
-          sidebarCollapsed ? "w-12" : "w-64"
-        )}
-      >
-        {/* Sidebar Header */}
-        <div className="flex items-center justify-between p-2 border-b border-[var(--border)] shrink-0">
-          {!sidebarCollapsed && (
-            <span className="text-xs font-semibold uppercase tracking-wider text-[var(--foreground-muted)]">
-              Stocks
-            </span>
-          )}
+    <>
+      {/* MOBILE LAYOUT */}
+      <div className="lg:hidden flex flex-col h-[calc(100vh-64px)] overflow-hidden">
+        {/* Mobile Header with Stock Picker */}
+        <div className="px-3 py-2 border-b border-[var(--border)] bg-[var(--background-secondary)] shrink-0">
+          <div className="flex items-center justify-between gap-3">
+            {/* Stock Picker Dropdown */}
+            <div className="relative" ref={stockPickerRef}>
+              <button
+                onClick={() => setShowStockPicker(!showStockPicker)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--background-tertiary)] border border-[var(--border)] hover:border-[var(--accent)]/50 transition-colors"
+              >
+                <span className="text-[var(--accent)] font-bold text-sm">{underlying}</span>
+                <ChevronDownIcon className={cn(
+                  "w-4 h-4 text-[var(--foreground-muted)] transition-transform",
+                  showStockPicker && "rotate-180"
+                )} />
+              </button>
+
+              {/* Dropdown Menu */}
+              {showStockPicker && (
+                <div className="absolute top-full left-0 mt-1 w-64 max-h-80 overflow-y-auto bg-[var(--background-card)] border border-[var(--border)] rounded-lg shadow-xl z-50">
+                  <div className="p-2 border-b border-[var(--border)] sticky top-0 bg-[var(--background-card)]">
+                    <div className="relative">
+                      <SearchIcon className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--foreground-muted)]" />
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search stocks..."
+                        className="w-full h-8 pl-7 pr-2 text-xs rounded bg-[var(--background-tertiary)] border border-[var(--border)] text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:outline-none focus:border-[var(--accent)]/50"
+                      />
+                    </div>
+                  </div>
+                  <div className="py-1">
+                    {filteredStocks.map((s) => (
+                      <button
+                        key={s.id}
+                        onClick={() => {
+                          router.push(`/trade/${s.underlying}`);
+                          setShowStockPicker(false);
+                          setSearchQuery("");
+                        }}
+                        className={cn(
+                          "w-full flex items-center justify-between px-3 py-2 text-left transition-colors",
+                          s.underlying.toLowerCase() === underlying.toLowerCase()
+                            ? "bg-[var(--accent)]/10 text-[var(--accent)]"
+                            : "hover:bg-[var(--background-tertiary)]"
+                        )}
+                      >
+                        <div>
+                          <span className="font-semibold text-xs">{s.underlying}</span>
+                          <span className="text-[10px] text-[var(--foreground-muted)] ml-2">{s.name}</span>
+                        </div>
+                        <span className="font-mono text-[10px] text-[var(--foreground-muted)]">
+                          {formatUsd(s.price.tokenPrice)}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Price & Spread */}
+            <div className="flex items-center gap-3 flex-1 justify-end">
+              <div className="text-right">
+                <span className="text-lg font-bold font-mono tabular-nums text-[var(--foreground)]">
+                  {formatUsd(price.tokenPrice)}
+                </span>
+              </div>
+              <span className={cn(
+                "text-sm font-semibold font-mono tabular-nums px-2 py-0.5 rounded",
+                price.spread >= 0 
+                  ? "text-[var(--positive)] bg-[var(--positive)]/10" 
+                  : "text-[var(--negative)] bg-[var(--negative)]/10"
+              )}>
+                {price.spread >= 0 ? "+" : ""}{price.spread.toFixed(2)}%
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile View Toggle */}
+        <div className="flex border-b border-[var(--border)] bg-[var(--background-secondary)] shrink-0">
           <button
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="p-1.5 rounded hover:bg-[var(--background-tertiary)] text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
-            title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            onClick={() => setMobileView("chart")}
+            className={cn(
+              "flex-1 py-2.5 text-xs font-semibold transition-all relative",
+              mobileView === "chart"
+                ? "text-[var(--accent)]"
+                : "text-[var(--foreground-muted)]"
+            )}
           >
-            {sidebarCollapsed ? (
-              <ChevronRightIcon className="w-4 h-4" />
-            ) : (
-              <ChevronLeftIcon className="w-4 h-4" />
+            Chart
+            {mobileView === "chart" && (
+              <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-[var(--accent)] rounded-full" />
+            )}
+          </button>
+          <button
+            onClick={() => setMobileView("info")}
+            className={cn(
+              "flex-1 py-2.5 text-xs font-semibold transition-all relative",
+              mobileView === "info"
+                ? "text-[var(--accent)]"
+                : "text-[var(--foreground-muted)]"
+            )}
+          >
+            Info & Trade
+            {mobileView === "info" && (
+              <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-[var(--accent)] rounded-full" />
             )}
           </button>
         </div>
 
-        {/* Search - only when expanded */}
-        {!sidebarCollapsed && (
-          <div className="p-2 border-b border-[var(--border)] shrink-0">
-            <div className="relative">
-              <SearchIcon className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--foreground-muted)]" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search..."
-                className="w-full h-8 pl-7 pr-2 text-xs rounded bg-[var(--background-tertiary)] border border-[var(--border)] text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:outline-none focus:border-[var(--accent)]/50 transition-colors"
+        {/* Mobile Content */}
+        <div className="flex-1 overflow-hidden">
+          {mobileView === "chart" ? (
+            /* Chart View */
+            <div className="h-full p-2 bg-[var(--background)]">
+              <TradingChart 
+                symbol={underlying} 
+                mintAddress={(stock as any).mintAddress}
+                fullscreen 
+              />
+            </div>
+          ) : (
+            /* Info & Trade View */
+            <div className="h-full flex flex-col overflow-hidden">
+              {/* Info Tabs */}
+              <div className="flex border-b border-[var(--border)] bg-[var(--background-secondary)] shrink-0">
+                <TabButton
+                  active={activeTab === "market"}
+                  onClick={() => setActiveTab("market")}
+                  icon={<ChartBarIcon className="w-3 h-3" />}
+                >
+                  Market
+                </TabButton>
+                <TabButton
+                  active={activeTab === "fundamentals"}
+                  onClick={() => setActiveTab("fundamentals")}
+                  icon={<DocumentIcon className="w-3 h-3" />}
+                >
+                  Fundamentals
+                </TabButton>
+                <TabButton
+                  active={activeTab === "news"}
+                  onClick={() => setActiveTab("news")}
+                  icon={<NewspaperIcon className="w-3 h-3" />}
+                >
+                  News
+                </TabButton>
+              </div>
+
+              {/* Scrollable Content */}
+              <div className="flex-1 overflow-y-auto">
+                {activeTab === "market" && (
+                  <LiquidityPanel
+                    symbol={underlying}
+                    tokenPrice={price.tokenPrice}
+                    stockPrice={price.tradFiPrice}
+                    spread={price.spread}
+                    mintAddress={(stock as any).mintAddress || null}
+                    hasSolana={(stock as any).hasSolana ?? false}
+                    volume24h={price.volume24h}
+                    marketCap={price.marketCap}
+                    change24h={price.change24h}
+                    high24h={price.high24h}
+                    low24h={price.low24h}
+                  />
+                )}
+                {activeTab === "fundamentals" && (
+                  <FundamentalsPanel symbol={underlying} />
+                )}
+                {activeTab === "news" && <NewsFeed symbol={underlying} />}
+              </div>
+
+              {/* Trading Panel - Fixed at bottom */}
+              <div className="shrink-0 border-t border-[var(--border)] bg-[var(--background-card)]">
+                <TradingPanel stock={stock} />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* DESKTOP LAYOUT */}
+      <div className="hidden lg:flex h-[calc(100vh-64px)] overflow-hidden">
+        {/* Left Sidebar - Stock List */}
+        <div
+          className={cn(
+            "flex flex-col bg-[var(--background-secondary)] border-r border-[var(--border)] transition-all duration-300",
+            sidebarCollapsed ? "w-12" : "w-64"
+          )}
+        >
+          {/* Sidebar Header */}
+          <div className="flex items-center justify-between p-2 border-b border-[var(--border)] shrink-0">
+            {!sidebarCollapsed && (
+              <span className="text-xs font-semibold uppercase tracking-wider text-[var(--foreground-muted)]">
+                Stocks
+              </span>
+            )}
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="p-1.5 rounded hover:bg-[var(--background-tertiary)] text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
+              title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              {sidebarCollapsed ? (
+                <ChevronRightIcon className="w-4 h-4" />
+              ) : (
+                <ChevronLeftIcon className="w-4 h-4" />
+              )}
+            </button>
+          </div>
+
+          {/* Search - only when expanded */}
+          {!sidebarCollapsed && (
+            <div className="p-2 border-b border-[var(--border)] shrink-0">
+              <div className="relative">
+                <SearchIcon className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--foreground-muted)]" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search..."
+                  className="w-full h-8 pl-7 pr-2 text-xs rounded bg-[var(--background-tertiary)] border border-[var(--border)] text-[var(--foreground)] placeholder-[var(--foreground-muted)] focus:outline-none focus:border-[var(--accent)]/50 transition-colors"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Stock List */}
+          <div className="flex-1 overflow-y-auto">
+            {filteredStocks.map((s) => (
+              <StockSidebarItem
+                key={s.id}
+                stock={s}
+                isActive={s.underlying.toLowerCase() === underlying.toLowerCase()}
+                isCollapsed={sidebarCollapsed}
+                isFavorite={isFavorite(s.symbol)}
+                canFavorite={canFavorite}
+                onFavoriteToggle={() => toggleFavorite(s.symbol)}
+                onClick={() => router.push(`/trade/${s.underlying}`)}
+              />
+            ))}
+          </div>
+
+          {/* Sidebar Footer */}
+          {!sidebarCollapsed && (
+            <div className="p-2 border-t border-[var(--border)] shrink-0">
+              <p className="text-[9px] text-[var(--foreground-subtle)] text-center">
+                {stocks.length} stocks available
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 flex flex-row min-h-0 overflow-hidden">
+          {/* Center: Chart Section */}
+          <div className="flex-1 flex flex-col min-w-0 min-h-0">
+            {/* Price Header */}
+            <div className="px-4 py-2.5 border-b border-[var(--border)] bg-[var(--background-secondary)] shrink-0">
+              <div className="flex items-center justify-between gap-4">
+                {/* Stock Info */}
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                  {/* Token Price */}
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-[var(--accent)] font-semibold text-base truncate">
+                        {underlying}/SOL
+                      </span>
+                      <span className="px-1.5 py-0.5 bg-[var(--accent)]/10 text-[var(--accent)] text-[9px] font-semibold uppercase rounded shrink-0">
+                        Token
+                      </span>
+                    </div>
+                    <span className="text-xl font-bold font-mono tabular-nums text-[var(--foreground)]">
+                      {formatUsd(price.tokenPrice)}
+                    </span>
+                  </div>
+
+                  <div className="h-10 w-px bg-[var(--border)]" />
+
+                  {/* Stock Price */}
+                  <div>
+                    <div className="text-[var(--foreground-muted)] font-medium text-xs mb-0.5">
+                      {underlying} Stock
+                    </div>
+                    <span className="text-lg font-semibold font-mono tabular-nums text-[var(--foreground-muted)]">
+                      {formatUsd(price.tradFiPrice)}
+                    </span>
+                  </div>
+
+                  <div className="h-10 w-px bg-[var(--border)]" />
+
+                  {/* Spread */}
+                  <div>
+                    <div className="text-[var(--foreground-subtle)] text-xs mb-0.5">
+                      Spread
+                    </div>
+                    <span className={cn(
+                      "text-lg font-semibold font-mono tabular-nums",
+                      price.spread >= 0 ? "text-[var(--positive)]" : "text-[var(--negative)]"
+                    )}>
+                      {price.spread >= 0 ? "+" : ""}{price.spread.toFixed(2)}%
+                    </span>
+                  </div>
+                </div>
+
+                {/* Market Badge */}
+                <div className="border border-[var(--accent)] text-[var(--accent)] text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded shrink-0">
+                  24/7 Market
+                </div>
+              </div>
+            </div>
+
+            {/* Chart */}
+            <div className="flex-1 p-3 bg-[var(--background)] min-h-0">
+              <TradingChart 
+                symbol={underlying} 
+                mintAddress={(stock as any).mintAddress}
+                fullscreen 
               />
             </div>
           </div>
-        )}
 
-        {/* Stock List */}
-        <div className="flex-1 overflow-y-auto">
-          {filteredStocks.map((s) => (
-            <StockSidebarItem
-              key={s.id}
-              stock={s}
-              isActive={s.underlying.toLowerCase() === underlying.toLowerCase()}
-              isCollapsed={sidebarCollapsed}
-              isFavorite={isFavorite(s.symbol)}
-              canFavorite={canFavorite}
-              onFavoriteToggle={() => toggleFavorite(s.symbol)}
-              onClick={() => router.push(`/trade/${s.underlying}`)}
-            />
-          ))}
-        </div>
+          {/* Right: Panels */}
+          <div className="w-[320px] flex flex-col bg-[var(--background-card)] border-l border-[var(--border)] min-h-0 overflow-hidden">
+            {/* Tab Navigation */}
+            <div className="flex border-b border-[var(--border)] bg-[var(--background-secondary)] shrink-0">
+              <TabButton
+                active={activeTab === "market"}
+                onClick={() => setActiveTab("market")}
+                icon={<ChartBarIcon className="w-3.5 h-3.5" />}
+              >
+                Market
+              </TabButton>
+              <TabButton
+                active={activeTab === "fundamentals"}
+                onClick={() => setActiveTab("fundamentals")}
+                icon={<DocumentIcon className="w-3.5 h-3.5" />}
+              >
+                Fundamentals
+              </TabButton>
+              <TabButton
+                active={activeTab === "news"}
+                onClick={() => setActiveTab("news")}
+                icon={<NewspaperIcon className="w-3.5 h-3.5" />}
+              >
+                News
+              </TabButton>
+            </div>
 
-        {/* Sidebar Footer */}
-        {!sidebarCollapsed && (
-          <div className="p-2 border-t border-[var(--border)] shrink-0">
-            <p className="text-[9px] text-[var(--foreground-subtle)] text-center">
-              {stocks.length} stocks available
-            </p>
-          </div>
-        )}
-      </div>
+            {/* Tab Content */}
+            <div className="flex-1 min-h-0 overflow-y-auto">
+              {activeTab === "market" && (
+                <LiquidityPanel
+                  symbol={underlying}
+                  tokenPrice={price.tokenPrice}
+                  stockPrice={price.tradFiPrice}
+                  spread={price.spread}
+                  mintAddress={(stock as any).mintAddress || null}
+                  hasSolana={(stock as any).hasSolana ?? false}
+                  volume24h={price.volume24h}
+                  marketCap={price.marketCap}
+                  change24h={price.change24h}
+                  high24h={price.high24h}
+                  low24h={price.low24h}
+                />
+              )}
+              {activeTab === "fundamentals" && (
+                <FundamentalsPanel symbol={underlying} />
+              )}
+              {activeTab === "news" && <NewsFeed symbol={underlying} />}
+            </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
-        {/* Center: Chart Section */}
-        <div className="flex-1 flex flex-col min-w-0 min-h-0">
-          {/* Price Header */}
-          <div className="px-4 py-2.5 border-b border-[var(--border)] bg-[var(--background-secondary)] shrink-0">
-            <div className="flex items-center justify-between gap-4">
-              {/* Stock Info */}
-              <div className="flex items-center gap-4 flex-1 min-w-0">
-                {/* Token Price */}
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-[var(--accent)] font-semibold text-base truncate">
-                      {underlying}/SOL
-                    </span>
-                    <span className="px-1.5 py-0.5 bg-[var(--accent)]/10 text-[var(--accent)] text-[9px] font-semibold uppercase rounded shrink-0">
-                      Token
-                    </span>
-                  </div>
-                  <span className="text-xl font-bold font-mono tabular-nums text-[var(--foreground)]">
-                    {formatUsd(price.tokenPrice)}
-                  </span>
-                </div>
-
-                <div className="h-10 w-px bg-[var(--border)] hidden sm:block" />
-
-                {/* Stock Price */}
-                <div className="hidden sm:block">
-                  <div className="text-[var(--foreground-muted)] font-medium text-xs mb-0.5">
-                    {underlying} Stock
-                  </div>
-                  <span className="text-lg font-semibold font-mono tabular-nums text-[var(--foreground-muted)]">
-                    {formatUsd(price.tradFiPrice)}
-                  </span>
-                </div>
-
-                <div className="h-10 w-px bg-[var(--border)] hidden sm:block" />
-
-                {/* Spread */}
-                <div className="hidden sm:block">
-                  <div className="text-[var(--foreground-subtle)] text-xs mb-0.5">
-                    Spread
-                  </div>
-                  <span className={cn(
-                    "text-lg font-semibold font-mono tabular-nums",
-                    price.spread >= 0 ? "text-[var(--positive)]" : "text-[var(--negative)]"
-                  )}>
-                    {price.spread >= 0 ? "+" : ""}{price.spread.toFixed(2)}%
-                  </span>
-                </div>
-              </div>
-
-              {/* Market Badge */}
-              <div className="hidden md:block border border-[var(--accent)] text-[var(--accent)] text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded shrink-0">
-                24/7 Market
-              </div>
+            {/* Trading Panel */}
+            <div className="shrink-0 border-t border-[var(--border)]">
+              <TradingPanel stock={stock} />
             </div>
           </div>
-
-          {/* Chart */}
-          <div className="flex-1 p-3 bg-[var(--background)] min-h-0">
-            <TradingChart symbol={underlying} fullscreen />
-          </div>
-        </div>
-
-        {/* Right: Panels */}
-        <div className="w-full lg:w-[320px] flex flex-col bg-[var(--background-card)] border-t lg:border-t-0 lg:border-l border-[var(--border)] min-h-0 overflow-hidden">
-          {/* Tab Navigation */}
-          <div className="flex border-b border-[var(--border)] bg-[var(--background-secondary)] shrink-0">
-            <TabButton
-              active={activeTab === "market"}
-              onClick={() => setActiveTab("market")}
-              icon={<ChartBarIcon className="w-3.5 h-3.5" />}
-            >
-              Market
-            </TabButton>
-            <TabButton
-              active={activeTab === "fundamentals"}
-              onClick={() => setActiveTab("fundamentals")}
-              icon={<DocumentIcon className="w-3.5 h-3.5" />}
-            >
-              Fundamentals
-            </TabButton>
-            <TabButton
-              active={activeTab === "news"}
-              onClick={() => setActiveTab("news")}
-              icon={<NewspaperIcon className="w-3.5 h-3.5" />}
-            >
-              News
-            </TabButton>
-          </div>
-
-          {/* Tab Content */}
-          <div className="flex-1 min-h-0 overflow-y-auto">
-            {activeTab === "market" && (
-              <LiquidityPanel
-                symbol={underlying}
-                tokenPrice={price.tokenPrice}
-                stockPrice={price.tradFiPrice}
-                spread={price.spread}
-                mintAddress={(stock as any).mintAddress || null}
-                hasSolana={(stock as any).hasSolana ?? false}
-                volume24h={price.volume24h}
-                marketCap={price.marketCap}
-                change24h={price.change24h}
-                high24h={price.high24h}
-                low24h={price.low24h}
-              />
-            )}
-            {activeTab === "fundamentals" && (
-              <FundamentalsPanel symbol={underlying} />
-            )}
-            {activeTab === "news" && <NewsFeed symbol={underlying} />}
-          </div>
-
-          {/* Trading Panel */}
-          <div className="shrink-0 border-t border-[var(--border)]">
-            <TradingPanel stock={stock} />
-          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -483,6 +692,14 @@ function ChevronRightIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+    </svg>
+  );
+}
+
+function ChevronDownIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
     </svg>
   );
 }
