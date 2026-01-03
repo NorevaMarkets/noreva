@@ -1,192 +1,60 @@
 import { NextResponse } from "next/server";
 import { Connection, PublicKey } from "@solana/web3.js";
 
-// API Keys from environment
-const MORALIS_API_KEY = process.env.MORALIS_API_KEY || "";
-const HELIUS_RPC = process.env.NEXT_PUBLIC_SOLANA_RPC_ENDPOINT || process.env.SOLANA_RPC_ENDPOINT || "";
+const HELIUS_RPC = process.env.NEXT_PUBLIC_SOLANA_RPC_ENDPOINT || "";
 
-// Moralis Solana API endpoint
-const MORALIS_SOLANA_API = "https://solana-gateway.moralis.io/account/mainnet";
+// All known xStock mint addresses with their info
+const XSTOCKS: Record<string, { symbol: string; name: string; underlying: string }> = {
+  "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh": { symbol: "NVDAx", name: "NVIDIA xStock", underlying: "NVDA" },
+  "XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp": { symbol: "AAPLx", name: "Apple xStock", underlying: "AAPL" },
+  "XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX": { symbol: "MSFTx", name: "Microsoft xStock", underlying: "MSFT" },
+  "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB": { symbol: "TSLAx", name: "Tesla xStock", underlying: "TSLA" },
+  "Xs3eBt7uRfJX8QUs4suhyU8p2M6DoUDrJyWBa8LLZsg": { symbol: "AMZNx", name: "Amazon xStock", underlying: "AMZN" },
+  "Xsa62P5mvPszXL1krVUnU5ar38bBSVcWAB6fmPCo5Zu": { symbol: "METAx", name: "Meta xStock", underlying: "META" },
+  "XsCPL9dNWBMvFtTmwcCA5v3xWPSMEBCszbQdiLLq6aN": { symbol: "GOOGLx", name: "Google xStock", underlying: "GOOGL" },
+  "XsEH7wWfJJu2ZT3UCFeVfALnVA6CP5ur7Ee11KmzVpL": { symbol: "NFLXx", name: "Netflix xStock", underlying: "NFLX" },
+  "XsjFwUPiLofddX5cWFHW35GCbXcSu1BCUGfxoQAQjeL": { symbol: "ORCLx", name: "Oracle xStock", underlying: "ORCL" },
+  "Xs7ZdzSHLU9ftNJsii5fCeJhoRWSC32SQGzGQtePxNu": { symbol: "COINx", name: "Coinbase xStock", underlying: "COIN" },
+  "XsP7xzNPvEHS1m6qfanPUGjNmdnmsLKEoNAnHjdxxyZ": { symbol: "MSTRx", name: "MicroStrategy xStock", underlying: "MSTR" },
+  "XsvNBAYkrDRNhA7wPHQfX3ZUXZyZLdnCQDfHZ56bzpg": { symbol: "HOODx", name: "Robinhood xStock", underlying: "HOOD" },
+  "XsaHND8sHyfMfsWPj6kSdd5VwvCayZvjYgKmmcNL5qh": { symbol: "XOMx", name: "Exxon xStock", underlying: "XOM" },
+  "XsaBXg8dU5cPM6ehmVctMkVqoiRG2ZjMo1cyBJ3AykQ": { symbol: "KOx", name: "Coca-Cola xStock", underlying: "KO" },
+  "Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ": { symbol: "QQQx", name: "Nasdaq ETF xStock", underlying: "QQQ" },
+  "XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W": { symbol: "SPYx", name: "S&P 500 ETF xStock", underlying: "SPY" },
+  "Xsv9hRk1z5ystj9MhnA7Lq4vjSsLwzL2nxrwmwtD3re": { symbol: "GLDx", name: "Gold ETF xStock", underlying: "GLD" },
+};
 
-// Clean mint address - remove "svm:" prefix
-function cleanMintAddress(mintAddress: string): string {
-  return mintAddress.startsWith("svm:") ? mintAddress.slice(4) : mintAddress;
-}
-
-interface MoralisToken {
-  mint: string;
-  amount: string;
-  decimals: string;
-  name?: string;
-  symbol?: string;
-}
-
-interface StockData {
-  symbol: string;
-  underlying: string;
-  name: string;
-  mintAddress: string;
-  hasSolana: boolean;
-  provider: string;
-  price?: {
-    tokenPrice: number;
-    tradFiPrice: number;
-    spread: number;
-  };
-}
-
-/**
- * Fetch portfolio using Moralis API (fast, 1 request)
- */
-async function fetchWithMoralis(
-  walletAddress: string,
-  stocksMap: Map<string, StockData>
-): Promise<{ holdings: any[]; totalValue: number } | null> {
-  if (!MORALIS_API_KEY) {
-    console.log("[Portfolio] No Moralis API key, skipping");
-    return null;
-  }
-
+// Fetch current prices from Backed Finance API
+async function fetchPrices(): Promise<Map<string, number>> {
+  const prices = new Map<string, number>();
+  const underlyings = [...new Set(Object.values(XSTOCKS).map(s => s.underlying))];
+  
   try {
-    console.log("[Portfolio] Fetching with Moralis...");
-    const startTime = Date.now();
-
+    const symbolsStr = underlyings.join(",");
     const response = await fetch(
-      `${MORALIS_SOLANA_API}/${walletAddress}/tokens`,
-      {
-        headers: {
-          "X-API-Key": MORALIS_API_KEY,
-          "Accept": "application/json",
-        },
-      }
+      `https://api.backed.fi/api/v1/collateral/quote?symbol=${symbolsStr}`,
+      { headers: { Accept: "application/json" } }
     );
-
-    if (!response.ok) {
-      console.error("[Portfolio] Moralis API error:", response.status);
-      return null;
-    }
-
-    const tokens: MoralisToken[] = await response.json();
-    console.log(`[Portfolio] Moralis returned ${tokens.length} tokens in ${Date.now() - startTime}ms`);
     
-    // Debug: Log all token mints from wallet
-    console.log("[Portfolio] Wallet tokens:", tokens.map(t => ({
-      mint: t.mint,
-      symbol: t.symbol,
-      amount: t.amount
-    })));
-    
-    // Debug: Log all known stock mints
-    console.log("[Portfolio] Known stock mints:", Array.from(stocksMap.keys()));
-
-    const holdings: any[] = [];
-
-    for (const token of tokens) {
-      const stock = stocksMap.get(token.mint);
-      console.log(`[Portfolio] Token ${token.mint} (${token.symbol}): ${stock ? 'MATCH FOUND' : 'no match'}`);
-      if (stock) {
-        const decimals = parseInt(token.decimals) || 9;
-        const balance = parseInt(token.amount) / Math.pow(10, decimals);
-
-        if (balance > 0) {
-          const valueUsd = balance * (stock.price?.tokenPrice || 0);
-
-          holdings.push({
-            symbol: stock.symbol,
-            underlying: stock.underlying,
-            name: stock.name,
-            mintAddress: token.mint,
-            balance,
-            tokenPrice: stock.price?.tokenPrice || 0,
-            stockPrice: stock.price?.tradFiPrice || 0,
-            spread: stock.price?.spread || 0,
-            valueUsd,
-            provider: stock.provider,
-          });
-        }
-      }
-    }
-
-    // Sort by value
-    holdings.sort((a, b) => b.valueUsd - a.valueUsd);
-    const totalValue = holdings.reduce((sum, h) => sum + h.valueUsd, 0);
-
-    console.log(`[Portfolio] Found ${holdings.length} stock holdings via Moralis`);
-    return { holdings, totalValue };
-  } catch (error) {
-    console.error("[Portfolio] Moralis fetch failed:", error);
-    return null;
-  }
-}
-
-/**
- * Fetch portfolio using Helius RPC (fallback, slower)
- */
-async function fetchWithHelius(
-  walletAddress: string,
-  solanaStocks: StockData[]
-): Promise<{ holdings: any[]; totalValue: number }> {
-  console.log("[Portfolio] Falling back to Helius RPC...");
-  const startTime = Date.now();
-
-  const publicKey = new PublicKey(walletAddress);
-  const connection = new Connection(HELIUS_RPC, "confirmed");
-
-  const holdings: any[] = [];
-
-  for (const stock of solanaStocks) {
-    const mintAddress = cleanMintAddress(stock.mintAddress);
-
-    try {
-      const mintPubkey = new PublicKey(mintAddress);
-      const tokenAccounts = await connection.getTokenAccountsByOwner(
-        publicKey,
-        { mint: mintPubkey }
-      );
-
-      if (tokenAccounts.value.length > 0) {
-        const accountInfo = await connection.getParsedAccountInfo(
-          tokenAccounts.value[0].pubkey
-        );
-
-        if (accountInfo.value) {
-          const data = accountInfo.value.data as any;
-          if (data.parsed) {
-            const balance = data.parsed.info.tokenAmount.uiAmount;
-
-            if (balance > 0) {
-              const valueUsd = balance * (stock.price?.tokenPrice || 0);
-
-              holdings.push({
-                symbol: stock.symbol,
-                underlying: stock.underlying,
-                name: stock.name,
-                mintAddress,
-                balance,
-                tokenPrice: stock.price?.tokenPrice || 0,
-                stockPrice: stock.price?.tradFiPrice || 0,
-                spread: stock.price?.spread || 0,
-                valueUsd,
-                provider: stock.provider,
-              });
-            }
+    if (response.ok) {
+      const data = await response.json();
+      // Handle both single and multi-symbol responses
+      if (underlyings.length === 1 && data.quote !== undefined) {
+        prices.set(underlyings[0], parseFloat(data.quote));
+      } else if (typeof data === "object") {
+        for (const [key, value] of Object.entries(data)) {
+          const quote = value as any;
+          if (quote && (quote.quote !== undefined || quote.price !== undefined)) {
+            prices.set(key, parseFloat(quote.quote || quote.price));
           }
         }
       }
-    } catch {
-      // Token account doesn't exist - skip
     }
-
-    // Small delay between requests to avoid rate limits
-    await new Promise(resolve => setTimeout(resolve, 50));
+  } catch (error) {
+    console.error("[Portfolio] Price fetch error:", error);
   }
-
-  // Sort by value
-  holdings.sort((a, b) => b.valueUsd - a.valueUsd);
-  const totalValue = holdings.reduce((sum, h) => sum + h.valueUsd, 0);
-
-  console.log(`[Portfolio] Found ${holdings.length} holdings via Helius in ${Date.now() - startTime}ms`);
-  return { holdings, totalValue };
+  
+  return prices;
 }
 
 export async function GET(request: Request) {
@@ -197,60 +65,73 @@ export async function GET(request: Request) {
     return NextResponse.json({ success: false, error: "Missing wallet address" }, { status: 400 });
   }
 
+  console.log(`[Portfolio] Checking wallet: ${walletAddress}`);
+
   try {
-    // Validate wallet address
-    new PublicKey(walletAddress);
-
-    // Build the base URL for internal API calls
-    const { origin } = new URL(request.url);
-
-    // Fetch all available stocks
-    const stocksResponse = await fetch(`${origin}/api/stocks`);
-    const stocksData = await stocksResponse.json();
-
-    if (!stocksData.success || !stocksData.data) {
-      return NextResponse.json({ success: false, error: "Failed to fetch stock data" }, { status: 500 });
-    }
-
-    // Get stocks with valid Solana mint addresses
-    const solanaStocks: StockData[] = stocksData.data.filter((stock: any) => {
-      const mint = cleanMintAddress(stock.mintAddress || "");
-      return mint && mint !== "N/A" && stock.hasSolana;
+    const publicKey = new PublicKey(walletAddress);
+    const connection = new Connection(HELIUS_RPC, "confirmed");
+    
+    // Fetch all token accounts for this wallet
+    console.log("[Portfolio] Fetching token accounts from Helius...");
+    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
+      programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
     });
-
-    // Create a map of mint address -> stock data for fast lookup
-    const stocksMap = new Map<string, StockData>();
-    for (const stock of solanaStocks) {
-      const cleanMint = cleanMintAddress(stock.mintAddress);
-      stocksMap.set(cleanMint, stock);
+    
+    console.log(`[Portfolio] Found ${tokenAccounts.value.length} token accounts`);
+    
+    // Fetch prices
+    const prices = await fetchPrices();
+    console.log(`[Portfolio] Fetched ${prices.size} prices`);
+    
+    const holdings: any[] = [];
+    
+    for (const account of tokenAccounts.value) {
+      const parsedInfo = account.account.data.parsed?.info;
+      if (!parsedInfo) continue;
+      
+      const mint = parsedInfo.mint;
+      const stock = XSTOCKS[mint];
+      
+      if (stock) {
+        const balance = parsedInfo.tokenAmount?.uiAmount || 0;
+        
+        if (balance > 0) {
+          const tokenPrice = prices.get(stock.underlying) || 0;
+          const valueUsd = balance * tokenPrice;
+          
+          console.log(`[Portfolio] FOUND: ${stock.symbol} - Balance: ${balance}, Price: $${tokenPrice}, Value: $${valueUsd}`);
+          
+          holdings.push({
+            symbol: stock.symbol,
+            underlying: stock.underlying,
+            name: stock.name,
+            mintAddress: mint,
+            balance,
+            tokenPrice,
+            stockPrice: tokenPrice,
+            spread: 0,
+            valueUsd,
+            provider: "backed",
+          });
+        }
+      }
     }
     
-    console.log(`[Portfolio] Loaded ${solanaStocks.length} Solana stocks, stocksMap has ${stocksMap.size} entries`);
-
-    // Try Moralis first (fast), fall back to Helius (slower)
-    let result = await fetchWithMoralis(walletAddress, stocksMap);
-    let source = "moralis";
-
-    if (!result) {
-      // Fallback to Helius RPC
-      result = await fetchWithHelius(walletAddress, solanaStocks);
-      source = "helius";
-    }
+    // Sort by value
+    holdings.sort((a, b) => b.valueUsd - a.valueUsd);
+    const totalValue = holdings.reduce((sum, h) => sum + h.valueUsd, 0);
+    
+    console.log(`[Portfolio] Result: ${holdings.length} holdings, $${totalValue.toFixed(2)} total`);
 
     return NextResponse.json({
       success: true,
-      holdings: result.holdings,
-      totalValue: result.totalValue,
-      count: result.holdings.length,
-      source, // For debugging
-      debug: {
-        knownStocks: solanaStocks.length,
-        stocksMapSize: stocksMap.size,
-        sampleMints: Array.from(stocksMap.keys()).slice(0, 3),
-      }
+      holdings,
+      totalValue,
+      count: holdings.length,
+      source: "helius_direct",
     });
   } catch (error) {
-    console.error("Portfolio API error:", error);
+    console.error("[Portfolio] Error:", error);
     return NextResponse.json(
       { success: false, error: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }
