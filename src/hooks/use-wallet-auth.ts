@@ -8,6 +8,16 @@ import bs58 from "bs58";
 const AUTH_TOKEN_KEY = "noreva_auth_token";
 const AUTH_WALLET_KEY = "noreva_auth_wallet";
 
+// Custom event name for auth state changes
+const AUTH_STATE_CHANGED_EVENT = "noreva_auth_state_changed";
+
+// Dispatch auth state change event
+function dispatchAuthStateChanged() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(AUTH_STATE_CHANGED_EVENT));
+  }
+}
+
 interface AuthState {
   isAuthenticated: boolean;
   isAuthenticating: boolean;
@@ -57,8 +67,8 @@ export function useWalletAuth(): UseWalletAuthReturn {
 
   const walletAddress = publicKey?.toBase58() || null;
 
-  // Check for existing auth token on mount
-  useEffect(() => {
+  // Function to check and load auth state from localStorage
+  const loadAuthState = useCallback(() => {
     if (typeof window === "undefined") return;
 
     const storedToken = localStorage.getItem(AUTH_TOKEN_KEY);
@@ -101,6 +111,25 @@ export function useWalletAuth(): UseWalletAuthReturn {
       });
     }
   }, [walletAddress]);
+
+  // Check for existing auth token on mount
+  useEffect(() => {
+    loadAuthState();
+  }, [loadAuthState]);
+
+  // Listen for auth state changes from other components
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleAuthStateChanged = () => {
+      loadAuthState();
+    };
+
+    window.addEventListener(AUTH_STATE_CHANGED_EVENT, handleAuthStateChanged);
+    return () => {
+      window.removeEventListener(AUTH_STATE_CHANGED_EVENT, handleAuthStateChanged);
+    };
+  }, [loadAuthState]);
 
   // Clear auth when disconnecting
   useEffect(() => {
@@ -157,6 +186,9 @@ export function useWalletAuth(): UseWalletAuthReturn {
         error: null,
       });
 
+      // Notify other components
+      dispatchAuthStateChanged();
+
       return true;
     } catch (error) {
       console.error("[Auth] Authentication failed:", error);
@@ -188,6 +220,8 @@ export function useWalletAuth(): UseWalletAuthReturn {
       authToken: null,
       error: null,
     });
+    // Notify other components
+    dispatchAuthStateChanged();
   }, []);
 
   /**
