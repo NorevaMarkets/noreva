@@ -29,6 +29,7 @@ Noreva is a web application for tracking and trading tokenized stocks on the Sol
 - **Analyst Ratings** - Consensus recommendations and price targets
 - **Earnings Calendar** - Upcoming earnings dates and historical EPS data
 - **Insider Trading** - Recent insider transactions and sentiment
+- **Recent Trades** - Live trading activity via Moralis API (auto-refreshes every 30s)
 
 ### User Features
 - **Wallet Authentication** - Secure signature-based authentication (no passwords!)
@@ -79,10 +80,16 @@ FINNHUB_API_KEY=your_finnhub_key
 JUPITER_API_KEY=your_jupiter_key
 NEXT_PUBLIC_SOLANA_RPC_ENDPOINT=https://mainnet.helius-rpc.com/?api-key=your_key
 
+# Moralis API (Portfolio, Trades)
+MORALIS_API_KEY=your_moralis_key
+
 # Supabase (Database)
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+# Access Gate (Optional)
+SITE_PASSWORD=your_access_password
 ```
 
 See `.env.example` for a complete template.
@@ -104,6 +111,7 @@ See `.env.example` for a complete template.
 - **Charts**: TradingView Lightweight Charts
 - **Animations**: [Framer Motion](https://www.framer.com/motion/)
 - **Authentication**: Wallet Signature Verification (nacl/tweetnacl)
+- **Blockchain Data**: [Moralis](https://moralis.io/) + [Helius](https://helius.dev/)
 - **Fonts**: Space Grotesk + JetBrains Mono
 
 ## Project Structure
@@ -182,6 +190,9 @@ DEX aggregation and swap quotes on Solana. [Documentation](https://station.jup.a
 
 ### Helius RPC
 High-performance Solana RPC endpoint. [Documentation](https://docs.helius.dev/)
+
+### Moralis API
+Solana token data including portfolio holdings, swaps, and transfers. [Documentation](https://docs.moralis.io/web3-data-api/solana)
 
 ### Supabase
 PostgreSQL database with Row Level Security for:

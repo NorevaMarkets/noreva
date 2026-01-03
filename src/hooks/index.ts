@@ -15,7 +15,6 @@ export { useTradeHistory } from "./use-trade-history";
 export { useWalletAuth } from "./use-wallet-auth";
 export { useFavorites } from "./use-favorites";
 export { useTradeStatistics } from "./use-trade-statistics";
-export { useTokenStats } from "./use-token-stats";
 export { useTokenTrades } from "./use-token-trades";
 export type { CandleData } from "./use-candle-data";
 export type { NewsItem } from "./use-stock-news";

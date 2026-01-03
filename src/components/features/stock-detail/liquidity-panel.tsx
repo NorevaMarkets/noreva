@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { useAnalystData, useEarningsData, useInsiderData, useTokenStats, useTokenTrades } from "@/hooks";
+import { useAnalystData, useEarningsData, useInsiderData, useTokenTrades } from "@/hooks";
 import type { TokenTrade } from "@/hooks";
 
 interface LiquidityPanelProps {
@@ -55,7 +55,6 @@ export function LiquidityPanel({
   const cleanMint = mintAddress && mintAddress !== "N/A" 
     ? (mintAddress.startsWith("svm:") ? mintAddress.slice(4) : mintAddress)
     : undefined;
-  const { stats: tokenStats, isLoading: statsLoading } = useTokenStats(cleanMint);
   const { trades: recentTrades, isLoading: tradesLoading } = useTokenTrades(cleanMint, { 
     limit: 5, 
     autoRefresh: true, 
@@ -156,25 +155,6 @@ export function LiquidityPanel({
               ${(marketCap / 1_000_000).toFixed(1)}M
             </span>
           </div>
-
-          {/* Holder Stats from Moralis */}
-          {hasSolana && cleanMint && (
-            <div className="flex items-center justify-between py-1.5 px-2 bg-[var(--background-tertiary)] rounded text-[10px]">
-              <span className="text-[var(--foreground-muted)] flex items-center gap-1">
-                <UsersIcon className="w-3 h-3" />
-                Token Holders
-              </span>
-              <span className="font-mono tabular-nums text-[var(--foreground)]">
-                {statsLoading ? (
-                  <span className="text-[var(--foreground-subtle)]">Loading...</span>
-                ) : tokenStats?.holders ? (
-                  tokenStats.holders.toLocaleString()
-                ) : (
-                  <span className="text-[var(--foreground-subtle)]">N/A</span>
-                )}
-              </span>
-            </div>
-          )}
         </div>
       </div>
 

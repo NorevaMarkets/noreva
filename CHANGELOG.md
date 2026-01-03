@@ -5,6 +5,45 @@ All notable changes to Noreva will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.0] - 2026-01-03
+
+### Added
+- **Moralis API Integration** - Enhanced blockchain data with Moralis
+  - Portfolio holdings fetched via Moralis (faster, better rate limits)
+  - Helius RPC remains as fallback for portfolio data
+  - Real-time token swap/trade data from Moralis
+- **Recent Trades Panel** - Live trading activity in Market Data section
+  - Shows last 5 trades for each token
+  - Buy/Sell indicators with color coding
+  - Token amounts and USD values
+  - Human-readable timestamps ("2m ago", "5m ago")
+  - Auto-refreshes every 30 seconds
+- **Moralis Partner Logo** - Added to About page partner slider
+- **Access Gate** - Simplified password protection
+  - Client-side component (no middleware)
+  - Easy to enable/disable via `ACCESS_GATE_ENABLED` constant
+  - Cookie-based authentication with js-cookie
+
+### Changed
+- **Password Protection** - Replaced middleware-based approach with simpler Access Gate component
+  - More reliable with React 19
+  - No more hydration issues
+  - Easier to toggle on/off
+- **Market Data Panel** - Reorganized layout with Recent Trades section
+
+### Removed
+- **Token Holders** - Removed feature (Moralis API doesn't support holder count for these tokens)
+- **AnimatedPrice Component** - Removed due to React Hook rendering issues
+- **Login Page & Middleware** - Replaced with Access Gate component
+
+### Technical
+- New API: `src/app/api/token/trades/route.ts` - Moralis swaps endpoint
+- New API: `src/app/api/portfolio/route.ts` - Updated with Moralis + Helius fallback
+- New Hook: `src/hooks/use-token-trades.ts` - Fetches recent trades
+- New Component: `src/components/providers/access-gate.tsx`
+- New Dependency: `js-cookie` for client-side cookie management
+- Environment Variable: `MORALIS_API_KEY` for Moralis API access
+
 ## [0.12.0] - 2026-01-02
 
 ### Added

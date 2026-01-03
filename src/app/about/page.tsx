@@ -156,6 +156,7 @@ export default function AboutPage() {
                 <PartnerLogo name="Helius" href="https://helius.dev" />
                 <PartnerLogo name="Birdeye" href="https://birdeye.so" />
                 <PartnerLogo name="TradingView" href="https://tradingview.com" />
+                <PartnerLogo name="Moralis" href="https://moralis.io" />
               </div>
               {/* Duplicate for seamless loop */}
               <div className="flex shrink-0 items-center gap-16 px-8">
@@ -167,6 +168,7 @@ export default function AboutPage() {
                 <PartnerLogo name="Helius" href="https://helius.dev" />
                 <PartnerLogo name="Birdeye" href="https://birdeye.so" />
                 <PartnerLogo name="TradingView" href="https://tradingview.com" />
+                <PartnerLogo name="Moralis" href="https://moralis.io" />
               </div>
             </div>
           </div>
@@ -339,6 +341,7 @@ const partnerLogos: Record<string, string> = {
   "Helius": "/partner/helius.svg",
   "Birdeye": "/partner/birdeye.png",
   "TradingView": "/partner/tradingview.svg",
+  "Moralis": "/partner/moralis.png",
 };
 
 function PartnerLogo({ name, href }: { name: string; href: string }) {

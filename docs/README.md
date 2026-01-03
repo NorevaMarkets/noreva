@@ -17,11 +17,13 @@ Official documentation for [Noreva](https://noreva.markets) - Trade tokenized st
 | **Account** | Profile settings and authentication |
 | **FAQ** | Common questions answered |
 
-## Latest Features (v0.9.0)
+## Latest Features (v0.13.0)
 
-- **Trading Dashboard** - PnL tracking, performance charts, trade calendar
-- **Smooth Animations** - Page transitions and stagger effects with Framer Motion
-- **Stock Breakdown** - Average buy/sell prices per stock
+- **Moralis API Integration** - Enhanced blockchain data for portfolio and trades
+- **Recent Trades Panel** - Live trading activity with auto-refresh
+- **Access Gate** - Simple password protection for private beta
+- **Toast Notifications** - Real-time feedback for all actions
+- **Trading Terminal** - Dedicated trading page with stock sidebar
 
 ## Tech Stack
 
@@ -38,6 +40,8 @@ Official documentation for [Noreva](https://noreva.markets) - Trade tokenized st
 - Solana Web3.js + Wallet Adapter
 - TradingView Charts
 - Supabase (PostgreSQL)
+- Moralis API (Portfolio, Trades)
+- Helius RPC (Solana)
 
 ## Development
 

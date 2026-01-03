@@ -100,30 +100,40 @@ export async function GET(request: Request) {
         console.log("[TokenTrades] First swap data:", JSON.stringify(swapsArray[0]).slice(0, 300));
 
         const trades: TokenSwap[] = swapsArray.slice(0, limit).map((swap: any) => {
-          // Determine if it's a buy or sell
-          const isBuy = swap.tokenOutMint === cleanMint 
-            || swap.bought?.mint === cleanMint
+          // Determine if it's a buy or sell - Moralis uses "transactionType"
+          const isBuy = swap.transactionType === "buy" 
             || swap.side === "buy"
-            || swap.transactionType === "buy";
+            || swap.bought?.mint === cleanMint;
           
-          // Get amount - try various field names
-          const amount = parseFloat(
-            swap.tokenOutAmount 
-            || swap.bought?.amount 
-            || swap.tokenInAmount 
-            || swap.sold?.amount 
-            || swap.amount
-            || swap.baseAmount
-            || "0"
-          );
+          // Get amount from bought/sold objects (Moralis format)
+          let amount = 0;
+          if (isBuy && swap.bought?.amount) {
+            amount = parseFloat(swap.bought.amount);
+          } else if (!isBuy && swap.sold?.amount) {
+            amount = parseFloat(swap.sold.amount);
+          } else {
+            // Fallback to other field names
+            amount = parseFloat(
+              swap.tokenOutAmount 
+              || swap.tokenInAmount 
+              || swap.amount
+              || swap.baseAmount
+              || "0"
+            );
+          }
+
+          // Get token symbol from bought/sold
+          const tokenSymbol = isBuy 
+            ? (swap.bought?.symbol || swap.tokenOutSymbol || "")
+            : (swap.sold?.symbol || swap.tokenInSymbol || "");
 
           return {
-            signature: swap.signature || swap.transactionHash || swap.txHash || swap.hash || "",
-            blockTime: parseTimestamp(swap.blockTime || swap.blockTimestamp || swap.timestamp || swap.time),
+            signature: swap.transactionHash || swap.signature || swap.txHash || swap.hash || "",
+            blockTime: parseTimestamp(swap.blockTimestamp || swap.blockTime || swap.timestamp || swap.time),
             type: isBuy ? "buy" : "sell",
             tokenAmount: amount,
-            tokenSymbol: swap.tokenOutSymbol || swap.tokenInSymbol || swap.symbol || "",
-            usdValue: parseFloat(swap.usdValue || swap.valueUsd || swap.totalValueUsd || "0"),
+            tokenSymbol,
+            usdValue: parseFloat(swap.totalValueUsd || swap.usdValue || swap.valueUsd || "0"),
             walletAddress: swap.walletAddress || swap.owner || swap.maker || swap.user || "",
           };
         });
