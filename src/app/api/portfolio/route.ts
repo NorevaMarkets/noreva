@@ -68,11 +68,22 @@ async function fetchWithMoralis(
 
     const tokens: MoralisToken[] = await response.json();
     console.log(`[Portfolio] Moralis returned ${tokens.length} tokens in ${Date.now() - startTime}ms`);
+    
+    // Debug: Log all token mints from wallet
+    console.log("[Portfolio] Wallet tokens:", tokens.map(t => ({
+      mint: t.mint,
+      symbol: t.symbol,
+      amount: t.amount
+    })));
+    
+    // Debug: Log all known stock mints
+    console.log("[Portfolio] Known stock mints:", Array.from(stocksMap.keys()));
 
     const holdings: any[] = [];
 
     for (const token of tokens) {
       const stock = stocksMap.get(token.mint);
+      console.log(`[Portfolio] Token ${token.mint} (${token.symbol}): ${stock ? 'MATCH FOUND' : 'no match'}`);
       if (stock) {
         const decimals = parseInt(token.decimals) || 9;
         const balance = parseInt(token.amount) / Math.pow(10, decimals);
@@ -213,6 +224,8 @@ export async function GET(request: Request) {
       const cleanMint = cleanMintAddress(stock.mintAddress);
       stocksMap.set(cleanMint, stock);
     }
+    
+    console.log(`[Portfolio] Loaded ${solanaStocks.length} Solana stocks, stocksMap has ${stocksMap.size} entries`);
 
     // Try Moralis first (fast), fall back to Helius (slower)
     let result = await fetchWithMoralis(walletAddress, stocksMap);
@@ -230,6 +243,11 @@ export async function GET(request: Request) {
       totalValue: result.totalValue,
       count: result.holdings.length,
       source, // For debugging
+      debug: {
+        knownStocks: solanaStocks.length,
+        stocksMapSize: stocksMap.size,
+        sampleMints: Array.from(stocksMap.keys()).slice(0, 3),
+      }
     });
   } catch (error) {
     console.error("Portfolio API error:", error);
