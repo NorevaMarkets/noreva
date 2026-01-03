@@ -176,7 +176,7 @@ export function LiquidityPanel({
             </div>
           ) : recentTrades.length > 0 ? (
             <div className="space-y-1">
-              {recentTrades.slice(0, 10).map((trade, idx) => (
+              {recentTrades.slice(0, 5).map((trade, idx) => (
                 <RecentTradeRow key={trade.signature || idx} trade={trade} />
               ))}
             </div>
