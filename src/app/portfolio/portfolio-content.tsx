@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatUsd, truncateAddress } from "@/lib/utils/format";
-import { usePortfolioHoldings, useTradeHistory } from "@/hooks";
+import { usePortfolioHoldings, useTradeHistory, useWalletAuth } from "@/hooks";
 import { useWalletBalance } from "@/hooks";
 import { TradeDashboard } from "@/components/features/trade-dashboard";
 import Link from "next/link";
@@ -20,6 +20,7 @@ import logoMapping from "../../../public/logos/mapping.json";
 export function PortfolioContent() {
   const { publicKey, connected, disconnect, wallet } = useWallet();
   const { setVisible } = useWalletModal();
+  const { isAuthenticated, isAuthenticating, authenticate } = useWalletAuth();
   const { holdings, totalValue, isLoading, error, refetch } = usePortfolioHoldings();
   const { sol: solBalance, usdc: usdcBalance } = useWalletBalance();
   const { trades, isLoading: tradesLoading } = useTradeHistory({ limit: 20 });
@@ -45,6 +46,39 @@ export function PortfolioContent() {
           <WalletIcon className="w-4 h-4" />
           Connect Wallet
         </button>
+      </Card>
+    );
+  }
+
+  // Wallet connected but not verified
+  if (!isAuthenticated) {
+    return (
+      <Card className="flex flex-col items-center justify-center py-12 sm:py-16 px-4">
+        <div className="w-14 sm:w-16 h-14 sm:h-16 rounded-full bg-[var(--accent)]/10 flex items-center justify-center mb-4">
+          <ShieldIcon className="w-7 sm:w-8 h-7 sm:h-8 text-[var(--accent)]" />
+        </div>
+        <h2 className="text-lg sm:text-xl font-semibold text-[var(--foreground)] mb-2 text-center">
+          Verify Your Wallet
+        </h2>
+        <p className="text-sm sm:text-base text-[var(--foreground-muted)] text-center max-w-md mb-6">
+          Sign a message to verify wallet ownership and access your portfolio, trading dashboard, and trade history.
+        </p>
+        <button
+          onClick={authenticate}
+          disabled={isAuthenticating}
+          className={cn(
+            "h-10 sm:h-11 px-5 sm:px-6 text-sm font-medium rounded-lg transition-colors flex items-center gap-2",
+            isAuthenticating
+              ? "bg-[var(--accent)]/50 text-[var(--background)] cursor-wait"
+              : "bg-[var(--accent)] text-[var(--background)] hover:bg-[var(--accent-light)]"
+          )}
+        >
+          <ShieldIcon className="w-4 h-4" />
+          {isAuthenticating ? "Signing..." : "Sign to Verify"}
+        </button>
+        <p className="text-[10px] sm:text-xs text-[var(--foreground-subtle)] mt-4 text-center max-w-sm">
+          This signature is free and does not trigger a blockchain transaction.
+        </p>
       </Card>
     );
   }
@@ -415,6 +449,14 @@ function ArrowDownIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+    </svg>
+  );
+}
+
+function ShieldIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
     </svg>
   );
 }
