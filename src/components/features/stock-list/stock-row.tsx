@@ -28,13 +28,20 @@ export function StockRow({ stock, onClick, isFavorite = false, onToggleFavorite,
 
   return (
     <motion.div
+      layout
+      layoutId={`stock-row-${stock.id}`}
       initial={{ opacity: 0, y: 20, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -10 }}
+      exit={{ opacity: 0, scale: 0.95 }}
       transition={{ 
         duration: 0.3,
-        delay: index * 0.03, // Stagger effect
-        ease: [0.25, 0.1, 0.25, 1.0] // Custom easing for smooth feel
+        delay: index * 0.03,
+        ease: [0.25, 0.1, 0.25, 1.0],
+        layout: {
+          type: "spring",
+          stiffness: 350,
+          damping: 30,
+        }
       }}
       whileHover={{ 
         scale: 1.005,

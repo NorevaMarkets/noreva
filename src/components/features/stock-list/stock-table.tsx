@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { StockRow } from "./stock-row";
 import { StockTableHeader } from "./stock-table-header";
 import { useFavorites } from "@/hooks";
@@ -132,21 +132,23 @@ export function StockTable({
           sortDirection={sortConfig.direction}
           onSort={handleSort}
         />
-        <div className="divide-y divide-[var(--border)]/50">
-          <AnimatePresence mode="popLayout">
-            {paginatedStocks.map((stock, index) => (
-              <StockRow
-                key={stock.id}
-                stock={stock}
-                onClick={() => onStockClick?.(stock)}
-                isFavorite={isFavorite(stock.symbol)}
-                onToggleFavorite={toggleFavorite}
-                canFavorite={canFavorite}
-                index={index}
-              />
-            ))}
-          </AnimatePresence>
-        </div>
+        <LayoutGroup>
+          <div className="divide-y divide-[var(--border)]/50">
+            <AnimatePresence mode="popLayout">
+              {paginatedStocks.map((stock, index) => (
+                <StockRow
+                  key={stock.id}
+                  stock={stock}
+                  onClick={() => onStockClick?.(stock)}
+                  isFavorite={isFavorite(stock.symbol)}
+                  onToggleFavorite={toggleFavorite}
+                  canFavorite={canFavorite}
+                  index={index}
+                />
+              ))}
+            </AnimatePresence>
+          </div>
+        </LayoutGroup>
       </div>
 
       {/* Pagination */}
