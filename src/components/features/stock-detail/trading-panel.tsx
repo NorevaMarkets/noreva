@@ -429,6 +429,35 @@ export function TradingPanel({ stock }: TradingPanelProps) {
     );
   }
 
+  // Render wallet verification state (wallet connected but not authenticated)
+  if (!isAuthenticated) {
+    return (
+      <div className="p-3 flex flex-col h-full items-center justify-center text-center">
+        <div className="w-12 h-12 rounded-full bg-[var(--accent)]/10 flex items-center justify-center mb-3">
+          <svg className="w-6 h-6 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+          </svg>
+        </div>
+        <p className="text-[11px] font-medium text-[var(--foreground)]">Verify Your Wallet</p>
+        <p className="text-[9px] text-[var(--foreground-subtle)] mt-1 mb-4 max-w-[180px]">
+          Sign a message to verify wallet ownership and enable trading
+        </p>
+        <button
+          onClick={authenticate}
+          className="px-4 py-2 bg-[var(--accent)] text-[var(--background)] rounded-lg text-xs font-semibold hover:bg-[var(--accent-light)] transition-colors flex items-center gap-2"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+          </svg>
+          Sign to Verify
+        </button>
+        <p className="text-[7px] text-[var(--foreground-subtle)] mt-3 max-w-[160px]">
+          This signature is free and does not trigger a blockchain transaction
+        </p>
+      </div>
+    );
+  }
+
   // Render no Solana deployment state
   if (!hasSolana || !tokenMintAddress) {
     return (
