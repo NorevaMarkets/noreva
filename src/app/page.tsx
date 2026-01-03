@@ -391,11 +391,11 @@ export default function HomePage() {
             {isLoading && stocks.length === 0 ? (
               <StockTableSkeleton rows={8} />
             ) : (
-              <StockTable 
-                stocks={filteredStocks} 
-                searchQuery={searchQuery}
+            <StockTable 
+              stocks={filteredStocks} 
+              searchQuery={searchQuery}
                 onStockClick={(stock) => router.push(`/trade/${stock.underlying}`)}
-              />
+            />
             )}
             
             {/* Footer note */}

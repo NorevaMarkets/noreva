@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
-import { Connection, PublicKey } from "@solana/web3.js";
 
 const HELIUS_RPC = process.env.NEXT_PUBLIC_SOLANA_RPC_ENDPOINT || "";
+
+// Extract API key from Helius RPC URL
+function getHeliusApiKey(): string {
+  const match = HELIUS_RPC.match(/api-key=([^&]+)/);
+  return match ? match[1] : "";
+}
 
 // All known xStock mint addresses with their info
 const XSTOCKS: Record<string, { symbol: string; name: string; underlying: string }> = {
@@ -68,52 +73,77 @@ export async function GET(request: Request) {
   console.log(`[Portfolio] Checking wallet: ${walletAddress}`);
 
   try {
-    const publicKey = new PublicKey(walletAddress);
-    const connection = new Connection(HELIUS_RPC, "confirmed");
+    const apiKey = getHeliusApiKey();
     
-    // Fetch all token accounts for this wallet
-    console.log("[Portfolio] Fetching token accounts from Helius...");
-    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
-      programId: new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"),
+    // Use Helius DAS API to get ALL fungible tokens
+    console.log("[Portfolio] Fetching tokens via Helius DAS API...");
+    const dasResponse = await fetch(`https://mainnet.helius-rpc.com/?api-key=${apiKey}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: "portfolio",
+        method: "searchAssets",
+        params: {
+          ownerAddress: walletAddress,
+          tokenType: "fungible",
+          displayOptions: {
+            showZeroBalance: false,
+            showNativeBalance: true,
+          },
+        },
+      }),
     });
+
+    const dasData = await dasResponse.json();
     
-    console.log(`[Portfolio] Found ${tokenAccounts.value.length} token accounts`);
+    if (dasData.error) {
+      console.error("[Portfolio] DAS API error:", dasData.error);
+      throw new Error(dasData.error.message || "DAS API failed");
+    }
+
+    const assets = dasData.result?.items || [];
+    console.log(`[Portfolio] DAS API returned ${assets.length} fungible assets`);
     
     // Fetch prices
     const prices = await fetchPrices();
     console.log(`[Portfolio] Fetched ${prices.size} prices`);
     
     const holdings: any[] = [];
+    const allTokenMints: string[] = [];
     
-    for (const account of tokenAccounts.value) {
-      const parsedInfo = account.account.data.parsed?.info;
-      if (!parsedInfo) continue;
+    for (const asset of assets) {
+      const mint = asset.id;
+      const balance = asset.token_info?.balance 
+        ? asset.token_info.balance / Math.pow(10, asset.token_info.decimals || 0)
+        : 0;
       
-      const mint = parsedInfo.mint;
+      // Log all tokens for debugging
+      if (balance > 0) {
+        allTokenMints.push(mint);
+        console.log(`[Portfolio] Token: ${mint} (${asset.content?.metadata?.symbol || 'unknown'}) - Balance: ${balance}`);
+      }
+      
       const stock = XSTOCKS[mint];
       
-      if (stock) {
-        const balance = parsedInfo.tokenAmount?.uiAmount || 0;
+      if (stock && balance > 0) {
+        const tokenPrice = prices.get(stock.underlying) || 0;
+        const valueUsd = balance * tokenPrice;
         
-        if (balance > 0) {
-          const tokenPrice = prices.get(stock.underlying) || 0;
-          const valueUsd = balance * tokenPrice;
-          
-          console.log(`[Portfolio] FOUND: ${stock.symbol} - Balance: ${balance}, Price: $${tokenPrice}, Value: $${valueUsd}`);
-          
-          holdings.push({
-            symbol: stock.symbol,
-            underlying: stock.underlying,
-            name: stock.name,
-            mintAddress: mint,
-            balance,
-            tokenPrice,
-            stockPrice: tokenPrice,
-            spread: 0,
-            valueUsd,
-            provider: "backed",
-          });
-        }
+        console.log(`[Portfolio] ✅ FOUND xStock: ${stock.symbol} - Balance: ${balance}, Price: $${tokenPrice}, Value: $${valueUsd}`);
+        
+        holdings.push({
+          symbol: stock.symbol,
+          underlying: stock.underlying,
+          name: stock.name,
+          mintAddress: mint,
+          balance,
+          tokenPrice,
+          stockPrice: tokenPrice,
+          spread: 0,
+          valueUsd,
+          provider: "backed",
+        });
       }
     }
     
@@ -128,7 +158,12 @@ export async function GET(request: Request) {
       holdings,
       totalValue,
       count: holdings.length,
-      source: "helius_direct",
+      source: "helius_das",
+      debug: {
+        totalAssets: assets.length,
+        tokensWithBalance: allTokenMints.length,
+        userTokenMints: allTokenMints.slice(0, 10), // Limit for response size
+      }
     });
   } catch (error) {
     console.error("[Portfolio] Error:", error);

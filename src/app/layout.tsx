@@ -90,16 +90,16 @@ export default function RootLayout({
           To remove completely: Remove <AccessGate> wrapper below
         */}
         <AccessGate>
-          <WalletProvider>
-            <div className="relative min-h-screen flex flex-col">
-              <Header />
-              <main className="flex-1">
-                <PageTransitionProvider>
-                  {children}
-                </PageTransitionProvider>
-              </main>
-              <Footer />
-            </div>
+        <WalletProvider>
+          <div className="relative min-h-screen flex flex-col">
+            <Header />
+            <main className="flex-1">
+              <PageTransitionProvider>
+                {children}
+              </PageTransitionProvider>
+            </main>
+            <Footer />
+          </div>
             <Toaster 
               theme="dark"
               position="top-right"
@@ -117,7 +117,7 @@ export default function RootLayout({
               }}
               richColors
             />
-          </WalletProvider>
+        </WalletProvider>
         </AccessGate>
       </body>
     </html>
